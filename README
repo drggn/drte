@@ -22,19 +22,19 @@ Keybindings:
 
   General
     open              Ctrl-o    F3
-	next buffer                 F5
-	previous buffer             F4
-	close                       F8
-	quit                        F10
+    next buffer                 F5
+    previous buffer             F4
+    close                       F8
+    quit                        F10
 
   Movement
     forward           Ctrl-F   Right
-	backward          Ctrl-B   Left
-	up                Ctrl-P   Up
-	down              Ctrl-N   Down
-	bol               Ctrl-A   Home
-	eol               Ctrl-E   End
+    backward          Ctrl-B   Left
+    up                Ctrl-P   Up
+    down              Ctrl-N   Down
+    bol               Ctrl-A   Home
+    eol               Ctrl-E   End
 
   Deletion
     before cursor    Ctrl-H    Backspace
-	under cursor     Ctrl-D    Delete
+    under cursor     Ctrl-D    Delete
