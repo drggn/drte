@@ -1,0 +1,8 @@
+*.o
+*~
+#*#
+.*
+!.gitignore
+drte
+drte-static
+UnicodeData.txt

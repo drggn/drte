@@ -1,0 +1,40 @@
+                             drte - dr's text editor
+drte is a simple text editor. It's currently in early stages of development.
+
+Current limitations:
+
+  - UTF8 support is very basic
+  - resizing the terminal window leads to problems
+  - currently only unix line endings (\n) are recognized
+  - it needs a better name
+
+Compiling:
+
+  drte needs ncurses. A C compiler and make are also necessary.
+
+  View/Edit Makefile. make. There is no install script, yet.
+
+Usage:
+
+  drte [file, file_2, ... file_n]
+
+Keybindings:
+
+  General
+    open              Ctrl-o    F3
+	next buffer                 F5
+	previous buffer             F4
+	close                       F8
+	quit                        F10
+
+  Movement
+    forward           Ctrl-F   Right
+	backward          Ctrl-B   Left
+	up                Ctrl-P   Up
+	down              Ctrl-N   Down
+	bol               Ctrl-A   Home
+	eol               Ctrl-E   End
+
+  Deletion
+    before cursor    Ctrl-H    Backspace
+	under cursor     Ctrl-D    Delete
