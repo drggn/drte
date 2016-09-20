@@ -41,11 +41,11 @@ main(int argc, char **argv){
 	char *txt;
 
 	setlocale(LC_ALL, "");
+
 	atexit(_endwin);
 	initscr();
-
-	signal(SIGINT, SIG_IGN);
-	signal(SIGQUIT, SIG_IGN);
+	noecho();
+	raw();
 	signal(SIGCONT, SIG_DFL);
 
 	e = xmalloc(sizeof(*e));
@@ -73,9 +73,6 @@ main(int argc, char **argv){
 		return -1;
 	}
 	mkprfuncs(e);
-
-	noecho();
-	cbreak();
 
 	funcs[Ctrl('A')] = bol;
 	funcs[Ctrl('B')] = left;
