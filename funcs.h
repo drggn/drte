@@ -24,3 +24,4 @@ void prevbuffer(Editor *e);
 void nextbuffer(Editor *e);
 void killbuffer(Editor *e);
 void msg(Editor *e, char *msg);
+void cx(Editor *e);

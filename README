@@ -21,20 +21,22 @@ Usage:
 Keybindings:
 
   General
-    open              Ctrl-o    F3
-    next buffer                 F5
-    previous buffer             F4
-    close                       F8
-    quit                        F10
+    open              Ctrl-x f     F3
+    next buffer       Ctrl-x n     F5
+    previous buffer   Ctrl-x p     F4
+    close             Ctrl-x k     F8
+    quit              Ctrl-x c     F10
+    save              Ctrl-x s     F2
+    save as           Ctrl-x w
 
   Movement
-    forward           Ctrl-F   Right
-    backward          Ctrl-B   Left
-    up                Ctrl-P   Up
-    down              Ctrl-N   Down
-    bol               Ctrl-A   Home
-    eol               Ctrl-E   End
+    forward           Ctrl-F       Right
+    backward          Ctrl-B       Left
+    up                Ctrl-P       Up
+    down              Ctrl-N       Down
+    bol               Ctrl-A       Home
+    eol               Ctrl-E       End
 
   Deletion
-    before cursor    Ctrl-H    Backspace
-    under cursor     Ctrl-D    Delete
+    before cursor     Ctrl-H       Backspace
+    under cursor      Ctrl-D       Delete

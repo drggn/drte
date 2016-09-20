@@ -566,3 +566,25 @@ msg(Editor *e, char *msg){
 		waddstr(e->bar, " ");
 	e->msg = 1;
 }
+
+void
+cx(Editor *e){
+	int c = wgetch(e->current->win);
+	switch(c){
+	case Ctrl('S'):
+	case 's': save(e); break;
+	case Ctrl('W'):
+	case 'w': saveas(e); break;
+	case Ctrl('K'):
+	case 'k': close(e); break;
+	case Ctrl('C'):
+	case 'c': quit(e); break;
+	case Ctrl('N'):
+	case 'n': nextbuffer(e); break;
+	case Ctrl('P'):
+	case 'p': prevbuffer(e); break;
+	case Ctrl('F'):
+	case 'f': open(e); break;
+	default: msg(e, "Sequence not bound");
+	}
+}
