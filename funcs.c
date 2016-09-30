@@ -2,6 +2,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <signal.h>
 #include <errno.h>
 #include <ncurses.h>
 
@@ -541,6 +542,11 @@ quit(Editor *e){
 	}while(e->current != first);
 
 	exit(0);
+}
+
+void
+suspend(Editor *e){
+	kill(0, SIGTSTP);
 }
 
 // Selects the previous buffer in the buffer list.

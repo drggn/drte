@@ -86,6 +86,7 @@ main(int argc, char **argv){
 	funcs[Ctrl('N')] = down;
 	funcs[Ctrl('P')] = up;
 	funcs[Ctrl('X')] = cx;
+	funcs[Ctrl('Z')] = suspend;
 	// TODO: handle newline
 	funcs[Ncur(KEY_UP)] = up;
 	funcs[Ncur(KEY_DOWN)] = down;

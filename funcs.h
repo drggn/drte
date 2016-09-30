@@ -20,6 +20,7 @@ void close(Editor *e);
 void save(Editor *e);
 void saveas(Editor *e);
 void quit(Editor *e);
+void suspend(Editor *e);
 void prevbuffer(Editor *e);
 void nextbuffer(Editor *e);
 void killbuffer(Editor *e);
