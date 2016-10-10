@@ -428,8 +428,10 @@ open(Editor *e){
 		return;
 	// check for existng buffer
 	do{
-		if(streql(e->current->filename, name)){
+		if(b->filename != NULL && streql(b->filename, name)){
+			e->current = b;
 			free(name);
+			e->current->redisp = 1;
 			return;
 		}
 		b = b->next;
