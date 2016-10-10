@@ -1,7 +1,7 @@
 CC ?= musl-gcc
 CFLAGS ?= -Os -Wall -std=c99 -pedantic -g
 NCURSES = -lncursesw
-NCURSES-STATIC = -lncurses -ltinfo
+NCURSES-STATIC = -lncursesw -ltinfo
 BIN = drte
 
 #############################################################################
