@@ -575,6 +575,11 @@ nextbuffer(Editor *e){
 
 void
 msg(Editor *e, char *msg){
+	// We can't show a msg when there is a prompt.
+	if(e->current == e->prbuf){
+		flash();
+		return;
+	}
 	mvwaddstr(e->bar, 0, 0, msg);
 	for(size_t i = strlen(msg); i <= COLS; i++)
 		waddstr(e->bar, " ");
