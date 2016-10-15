@@ -128,6 +128,7 @@ main(int argc, char **argv){
 	wrefresh(e->bar);
 	if(e->current->redisp){
 		free(txt);
+		wclear(e->current->win);
 		txt = gbftxt(e->current->gbuf);
 		mvwaddstr(e->current->win, 0, 0, txt + e->current->vis);
 		wrefresh(e->current->win);
