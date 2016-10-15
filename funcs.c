@@ -94,6 +94,8 @@ static char *
 prompt(Editor *e, char *prompt){
 	char *txt;
 	size_t coloff = strlen(prompt);
+	Buffer *oldc = e->current;
+	e->current = e->prbuf;
 	gbfclear(e->prbuf->gbuf);
 	e->prbuf->col = 0;
 	e->prbuf->off = 0;
@@ -106,14 +108,17 @@ prompt(Editor *e, char *prompt){
 	txt = gbftxt(e->prbuf->gbuf);
 	mvwaddstr(e->bar, 0, 0, prompt);
 	mvwaddstr(e->bar, 0, coloff, txt);
+	wmove(e->bar, 0, e->prbuf->col + coloff);
 
 	wrefresh(e->bar);
 
 	int c = wgetch(e->bar);
 	if(c == '\n'){
+		e->current = oldc;
 		return gbftxt(e->prbuf->gbuf);
 	}else if(c == 3 || c == 7){
 		// C-c or C-g
+		e->current = oldc;
 		return NULL;
 	}else if((c >= 0 && c <= 31) || (c >= KEY_BREAK && c <= KEY_UNDO)){
 		if(e->prfuncs[Code(c)] != NULL){
@@ -149,8 +154,9 @@ prompt(Editor *e, char *prompt){
 			}
 		}
 		ins(e->prbuf, inp);
-		goto loop;
 	}
+	goto loop;
+	// not reached
 	return NULL;
 }
 

@@ -18,6 +18,7 @@ _endwin(void){
 
 static void
 mkprfuncs(Editor *e){
+	memset(e->prfuncs, 0, (32 + (KEY_UNDO - KEY_BREAK) + 1) * 8);
 	e->prfuncs[Ctrl('A')] = bol;
 	e->prfuncs[Ctrl('B')] = left;
 	e->prfuncs[Ctrl('D')] = del;
@@ -53,6 +54,7 @@ main(int argc, char **argv){
 	e->current = NULL;
 
 	e->bar = newwin(1, 0, LINES - 1, 0);
+	keypad(e->bar, TRUE);
 	wattron(e->bar, A_REVERSE);
 
 	for(size_t i = 1; i < argc; i++){
