@@ -25,7 +25,7 @@ mkprfuncs(Editor *e){
 	e->prfuncs[Ctrl('E')] = eol;
 	e->prfuncs[Ctrl('F')] = right;
 	e->prfuncs[Ctrl('H')] = bksp;
-	// TODO: handle newline
+
 	e->prfuncs[Ncur(KEY_LEFT)] = left;
 	e->prfuncs[Ncur(KEY_RIGHT)] = right;
 	e->prfuncs[Ncur(KEY_HOME)] = bol;
@@ -89,7 +89,7 @@ main(int argc, char **argv){
 	funcs[Ctrl('P')] = up;
 	funcs[Ctrl('X')] = cx;
 	funcs[Ctrl('Z')] = suspend;
-	// TODO: handle newline
+
 	funcs[Ncur(KEY_UP)] = up;
 	funcs[Ncur(KEY_DOWN)] = down;
 	funcs[Ncur(KEY_LEFT)] = left;
