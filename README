@@ -28,7 +28,7 @@ Keybindings:
     quit              Ctrl-x c     F10
     save              Ctrl-x s     F2
     save as           Ctrl-x w
-	suspend           Ctrl-z
+    suspend           Ctrl-z
   Movement
     forward           Ctrl-F       Right
     backward          Ctrl-B       Left
