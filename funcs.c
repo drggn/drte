@@ -486,7 +486,6 @@ close(Editor *e){
 }
 
 // Saves a file.
-// FIXME: always prints error, even if saved
 void
 save(Editor *e){
 	FILE *fd;
