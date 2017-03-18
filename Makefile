@@ -6,7 +6,7 @@ BIN = drte
 
 #############################################################################
 
-OBJS = main.o gapbuf.o xmalloc.o funcs.o
+OBJS = main.o gapbuf.o utils.o edit.o move.o mgmt.o
 
 drte: $(OBJS)
 	$(CC) $(CFLAGS) -o $@ *.o $(NCURSES)
@@ -20,8 +20,10 @@ clean:
 distclean:
 	-rm *.o drte drte-static
 
-main.o: main.c gapbuf.h xmalloc.h buf.h funcs.h
-gapbuf.o: gapbuf.c gapbuf.h xmalloc.h
-xmalloc.o: xmalloc.c xmalloc.h
-funcs.o: funcs.c funcs.h buf.h gapbuf.h xmalloc.h
+main.o: main.c gapbuf.h utils.h buf.h funcs.h
+gapbuf.o: gapbuf.c gapbuf.h utils.h
+utils.o: utils.c utils.h
+edit.o: edit.c gapbuf.h buf.h utils.h funcs.h
+move.o: move.c gapbuf.h buf.h utils.h funcs.h
+mgmt.o: mgmt.c gapbuf.h buf.h utils.h funcs.h
 

@@ -3,11 +3,12 @@
 #include <string.h>
 #include <sys/types.h>
 #include <signal.h>
+
 #include <ncurses.h>
 
 #include "gapbuf.h"
-#include "xmalloc.h"
 #include "buf.h"
+#include "utils.h"
 #include "funcs.h"
 
 // Wrapper for atexit.

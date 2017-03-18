@@ -1,10 +1,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-
 #include <sys/types.h>
 
-#include "xmalloc.h"
+#include "utils.h"
 #include "gapbuf.h"
 
 #define GAPINCR 10
