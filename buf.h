@@ -14,6 +14,7 @@ typedef struct Buffer{
 	Gapbuf *gbuf;
 	WINDOW *win;
 	Func lastfunc;
+	Func funcs[32 + (KEY_UNDO - KEY_BREAK) + 1];
 
 	struct Buffer *next;
 	struct Buffer *prev;

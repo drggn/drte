@@ -39,7 +39,6 @@ int
 main(int argc, char **argv){
 	Editor *e;
 	Buffer *buf;
-	Func funcs[32 + (KEY_UNDO - KEY_BREAK) + 1] = {0};
 	char *txt;
 
 	setlocale(LC_ALL, "");
@@ -77,37 +76,6 @@ main(int argc, char **argv){
 	}
 	mkprfuncs(e);
 
-	funcs[Ctrl('A')] = bol;
-	funcs[Ctrl('B')] = left;
-	funcs[Ctrl('D')] = del;
-	funcs[Ctrl('E')] = eol;
-	funcs[Ctrl('F')] = right;
-	funcs[Ctrl('H')] = bksp;
-	funcs[Ctrl('I')] = tab;
-	funcs[Ctrl('J')] = newl;
-	funcs[Ctrl('M')] = newl;
-	funcs[Ctrl('N')] = down;
-	funcs[Ctrl('P')] = up;
-	funcs[Ctrl('X')] = cx;
-	funcs[Ctrl('Z')] = suspend;
-
-	funcs[Ncur(KEY_UP)] = up;
-	funcs[Ncur(KEY_DOWN)] = down;
-	funcs[Ncur(KEY_LEFT)] = left;
-	funcs[Ncur(KEY_RIGHT)] = right;
-	funcs[Ncur(KEY_HOME)] = bol;
-	funcs[Ncur(KEY_END)] = eol;
-	funcs[Ncur(KEY_DC)] = del;
-	funcs[Ncur(KEY_ENTER)] = newl;
-	funcs[Ncur(KEY_BACKSPACE)] = bksp;
-	funcs[Ncur(KEY_STAB)] = tab;
-	funcs[Ncur(KEY_F(2))] = save;
-	funcs[Ncur(KEY_F(3))] = open;
-	funcs[Ncur(KEY_F(4))] = prevbuffer;
-	funcs[Ncur(KEY_F(5))] = nextbuffer;
-	funcs[Ncur(KEY_F(8))] = close;
-	funcs[Ncur(KEY_F(10))] = quit;
-
 	txt = gbftxt(e->current->gbuf);
 	mvwaddstr(e->current->win, 0, 0, txt);
 
@@ -139,9 +107,9 @@ main(int argc, char **argv){
 
 	int c = wgetch(e->current->win);
 	if((c >= 0 && c <= 31) || (c >= KEY_BREAK && c <= KEY_UNDO)){
-		if(funcs[Code(c)] != NULL){
-			funcs[Code(c)](e);
-			e->current->lastfunc = funcs[Code(c)];
+		if(e->current->funcs[Code(c)] != NULL){
+			e->current->funcs[Code(c)](e);
+			e->current->lastfunc = e->current->funcs[Code(c)];
 		}
 	}else{
 		int b;

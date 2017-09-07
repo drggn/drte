@@ -147,6 +147,39 @@ newbuffer(Editor *e, char *file){
 	}
 	keypad(buf->win, TRUE);
 
+	memset(buf->funcs, 0, (32 + (KEY_UNDO - KEY_BREAK) + 1) * 8);
+
+	buf->funcs[Ctrl('A')] = bol;
+	buf->funcs[Ctrl('B')] = left;
+	buf->funcs[Ctrl('D')] = del;
+	buf->funcs[Ctrl('E')] = eol;
+	buf->funcs[Ctrl('F')] = right;
+	buf->funcs[Ctrl('H')] = bksp;
+	buf->funcs[Ctrl('I')] = tab;
+	buf->funcs[Ctrl('J')] = newl;
+	buf->funcs[Ctrl('M')] = newl;
+	buf->funcs[Ctrl('N')] = down;
+	buf->funcs[Ctrl('P')] = up;
+	buf->funcs[Ctrl('X')] = cx;
+	buf->funcs[Ctrl('Z')] = suspend;
+
+	buf->funcs[Ncur(KEY_UP)] = up;
+	buf->funcs[Ncur(KEY_DOWN)] = down;
+	buf->funcs[Ncur(KEY_LEFT)] = left;
+	buf->funcs[Ncur(KEY_RIGHT)] = right;
+	buf->funcs[Ncur(KEY_HOME)] = bol;
+	buf->funcs[Ncur(KEY_END)] = eol;
+	buf->funcs[Ncur(KEY_DC)] = del;
+	buf->funcs[Ncur(KEY_ENTER)] = newl;
+	buf->funcs[Ncur(KEY_BACKSPACE)] = bksp;
+	buf->funcs[Ncur(KEY_STAB)] = tab;
+	buf->funcs[Ncur(KEY_F(2))] = save;
+	buf->funcs[Ncur(KEY_F(3))] = open;
+	buf->funcs[Ncur(KEY_F(4))] = prevbuffer;
+	buf->funcs[Ncur(KEY_F(5))] = nextbuffer;
+	buf->funcs[Ncur(KEY_F(8))] = close;
+	buf->funcs[Ncur(KEY_F(10))] = quit;
+
 	return buf;
 }
 
