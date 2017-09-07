@@ -79,7 +79,7 @@ prompt(Editor *e, char *prompt){
 				goto loop;
 			}
 		}
-		ins(e->prbuf, inp);
+		ins(e, inp);
 	}
 	goto loop;
 	// not reached

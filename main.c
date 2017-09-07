@@ -172,7 +172,7 @@ main(int argc, char **argv){
 				goto loop;
 			}
 		}
-		ins(e->current, inp);
+		ins(e, inp);
 	}
 	goto loop;
 	// not reached

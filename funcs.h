@@ -3,7 +3,7 @@
 #define Code(c) ((c) >= 0 && (c) <= 31 ? (c) : Ncur((c)))
 
 // In edit.c
-void ins(Buffer *b, char *s);
+void ins(Editor *e, char *s);
 void tab(Editor *e);
 void newl(Editor *e);
 void del(Editor *e);

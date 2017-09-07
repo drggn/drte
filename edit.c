@@ -10,28 +10,26 @@
 
 // Inserts s into the buffer.
 void
-ins(Buffer *buf, char *s){
-	gbfins(buf->gbuf, s, buf->off);
-	buf->bytes += strlen(s);
-	forwoff(buf);
-	buf->col += width(s[0]);
-	buf->changed = 1;
-	buf->redisp = 1;
+ins(Editor *e, char *s){
+	Buffer *b = e->current;
+
+	gbfins(b->gbuf, s, b->off);
+	b->bytes += strlen(s);
+	right(e);
+	b->changed = 1;
+	b->redisp = 1;
 }
 
 // Inserts a '\t' at the current position
 void
 tab(Editor *e){
-	ins(e->current, "\t");
+	ins(e, "\t");
 }
 
 // Inserts a '\n' at the current position
 void
 newl(Editor *e){
-	ins(e->current, "\n");
-	e->current->line++;
-	e->current->curline++;
-	e->current->col = 0;
+	ins(e, "\n");
 }
 
 // Deletes the char under the cursor
