@@ -65,6 +65,16 @@ backwvis(Buffer *b){
 		b->vis++;
 }
 
+static void
+forwcol(Buffer *b){
+	b->col += width(gbfat(b->gbuf, b->off));
+}
+
+static void
+backwcol(Buffer *b){
+	b->col -= width(gbfat(b->gbuf, b->off));
+}
+
 // Scrolls up by one line.
 static void
 scrollup(Buffer *b){
@@ -101,7 +111,7 @@ left(Editor *e){
 		bol(e);
 		eol(e);
 	}else{
-		b->col -= width(gbfat(b->gbuf, b->off));
+		backwcol(b);
 	}
 }
 
@@ -127,7 +137,7 @@ right(Editor *e){
 		}
 		b->col = 0;
 	}else{
-		b->col += width(gbfat(b->gbuf, b->off));
+		forwcol(b);
 	}
 	forwoff(b);
 }
@@ -208,7 +218,7 @@ eol(Editor *e){
 		return;
 	}
 	while(b->off != b->bytes && gbfat(b->gbuf, b->off) != '\n'){
-		b->col += width(gbfat(b->gbuf, b->off));
+		forwcol(b);
 		forwoff(b);
 	}
 }
