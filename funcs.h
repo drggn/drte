@@ -20,12 +20,15 @@ void bol(Editor *e);
 void eol(Editor *e);
 
 // In mgmt.c
+void loop(Editor *e);
 void addbuffer(Editor *e, Buffer *buf, int before);
 Buffer *newbuffer(Editor *e, char *file);
 void open(Editor *e);
 void close(Editor *e);
 void save(Editor *e);
 void saveas(Editor *e);
+void stoploop(Editor *e);
+void cancelloop(Editor *e);
 void quit(Editor *e);
 void suspend(Editor *e);
 void prevbuffer(Editor *e);

@@ -14,6 +14,8 @@ ins(Editor *e, char *s){
 	Buffer *b = e->current;
 
 	gbfins(b->gbuf, s, b->off);
+	char *t = gbftxt(b->gbuf);
+	free(t);
 	b->bytes += strlen(s);
 	right(e);
 	b->changed = 1;

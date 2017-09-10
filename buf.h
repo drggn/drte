@@ -21,9 +21,12 @@ typedef struct Buffer{
 }Buffer;
 
 typedef struct Editor{
-	WINDOW *bar;
 	int msg;
+	int prompt;
+	int stop;
+	int cancel;
 	Buffer *prbuf;
-	Func prfuncs[32 + (KEY_UNDO - KEY_BREAK) + 1];
-	Buffer *current; // circular linked list
+	char *promptstr;
+	Buffer *txtbuf; // circular linked list
+	Buffer *current;
 }Editor;

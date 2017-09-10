@@ -14,76 +14,95 @@
 
 #define streql(s, t) (strcmp((s), (t)) == 0)
 
+void
+loop(Editor *e){
+	char *txt = gbftxt(e->txtbuf->gbuf);
+	char *prmtxt = gbftxt(e->prbuf->gbuf);
+
+	do{
+		if(e->msg){
+			e->msg = 0;
+		}else if(e->prompt){
+			size_t coloff = strlen(e->promptstr);
+			if(e->prbuf->col == 0)
+				e->prbuf->col = coloff;
+			wclear(e->prbuf->win);
+			free(prmtxt);
+			prmtxt = gbftxt(e->prbuf->gbuf);
+			mvwaddstr(e->prbuf->win, 0, 0, e->promptstr);
+			mvwaddstr(e->prbuf->win, 0, coloff, prmtxt);
+			wmove(e->prbuf->win, 0, e->prbuf->col + coloff);
+			e->current = e->prbuf;
+		}else{
+			char msg[COLS];
+			snprintf(msg, COLS - 1, "(%ld,%ld) vis: %ld %ld/%ld: %s%s",
+					 e->txtbuf->line, e->txtbuf->col, e->txtbuf->vis,
+					 e->txtbuf->off, e->txtbuf->bytes,
+					 e->txtbuf->filename ? e->txtbuf->filename : "Unnamed",
+					 e->txtbuf->changed ? "*" : " ");
+
+			mvwaddstr(e->prbuf->win, 0, 0, msg);
+			for(size_t i = strlen(msg); i <= COLS; i++)
+				waddstr(e->prbuf->win, " ");
+			e->current = e->txtbuf;
+		}
+		wrefresh(e->prbuf->win);
+		if(e->txtbuf->redisp){
+			free(txt);
+			wclear(e->txtbuf->win);
+			txt = gbftxt(e->txtbuf->gbuf);
+			mvwaddstr(e->txtbuf->win, 0, 0, txt + e->txtbuf->vis);
+			wrefresh(e->txtbuf->win);
+			e->txtbuf->redisp = 0;
+		}
+		wmove(e->current->win, e->current->curline, e->current->col);
+
+		int c = wgetch(e->current->win);
+		if((c >= 0 && c <= 31) || (c >= KEY_BREAK && c <= KEY_UNDO)){
+			if(e->current->funcs[Code(c)] != NULL){
+				e->current->funcs[Code(c)](e);
+				e->current->lastfunc = e->current->funcs[Code(c)];
+			}
+		}else{
+			int b = bytes(c);
+			char inp[5] = {0};
+
+			inp[0] = c;
+			for(int i = 1; i < b; i++){
+				c = wgetch(e->current->win);
+				if((c & 0x00000080) == 0x00000080){
+					inp[i] = c;
+				}else{
+					msg(e, "Invalid input");
+					continue;
+				}
+			}
+			ins(e, inp);
+		}
+	}while(!e->stop);
+}
+
 // Displays prompt in the status bar. Returns
 // the text entered by the user.
 static char *
 prompt(Editor *e, char *prompt){
-	char *txt;
-	size_t coloff = strlen(prompt);
-	Buffer *oldc = e->current;
-	e->current = e->prbuf;
-	gbfclear(e->prbuf->gbuf);
+	e->prompt = 1;
+	e->promptstr = prompt;
 	e->prbuf->col = 0;
 	e->prbuf->off = 0;
 	e->prbuf->bytes = 0;
-	txt = gbftxt(e->prbuf->gbuf);
+	gbfclear(e->prbuf->gbuf);
 
- loop:
-	wclear(e->bar);
-	free(txt);
-	txt = gbftxt(e->prbuf->gbuf);
-	mvwaddstr(e->bar, 0, 0, prompt);
-	mvwaddstr(e->bar, 0, coloff, txt);
-	wmove(e->bar, 0, e->prbuf->col + coloff);
+	loop(e);
 
-	wrefresh(e->bar);
-
-	int c = wgetch(e->bar);
-	if(c == '\n'){
-		e->current = oldc;
-		return gbftxt(e->prbuf->gbuf);
-	}else if(c == 3 || c == 7){
-		// C-c or C-g
-		e->current = oldc;
+	e->prompt = 0;
+	e->stop = 0;
+	if(e->cancel){
+		e->cancel = 0;
 		return NULL;
-	}else if((c >= 0 && c <= 31) || (c >= KEY_BREAK && c <= KEY_UNDO)){
-		if(e->prfuncs[Code(c)] != NULL){
-			e->prfuncs[Code(c)](e);
-		}
 	}else{
-		int b;
-		char inp[5] = {0};
-		if(c < 128){
-			// one byte
-			b = 1;
-		}else if((c & 0x000000F0) == 0xF0){
-			// for bytes
-			b = 4;
-		}else if((c & 0x000000E0) == 0xE0){
-			// three bytes
-			b = 3;
-		}else if((c & 0x000000C0) == 0xC0){
-			// two bytes
-			b = 2;
-		}else{
-			flash();
-			goto loop;
-		}
-		inp[0] = c;
-		for(int i = 1; i < b; i++){
-			c = wgetch(e->bar);
-			if((c & 0x00000080) == 0x00000080){
-				inp[i] = c;
-			}else{
-				flash();
-				goto loop;
-			}
-		}
-		ins(e, inp);
+		return gbftxt(e->prbuf->gbuf);
 	}
-	goto loop;
-	// not reached
-	return NULL;
 }
 
 // Adds buffer b to the editor. If before is true,
@@ -92,19 +111,19 @@ void
 addbuffer(Editor *e, Buffer *buf, int before){
 	if(buf == NULL)
 		return;
-	if(e->current == NULL){
-		e->current = buf;
+	if(e->txtbuf == NULL){
+		e->txtbuf = buf;
 		buf->next = buf;
 		buf->prev = buf;
 	}else if(before){
-		buf->next = e->current;
-		buf->prev = e->current->prev;
+		buf->next = e->txtbuf;
+		buf->prev = e->txtbuf->prev;
 		buf->prev->next = buf;
-		e->current->prev = buf;
+		e->txtbuf->prev = buf;
 	}else{
-		buf->next = e->current->next;
-		e->current->next = buf;
-		buf->prev = e->current;
+		buf->next = e->txtbuf->next;
+		e->txtbuf->next = buf;
+		buf->prev = e->txtbuf;
 		buf->next->prev = buf;
 	}
 }
@@ -145,6 +164,7 @@ newbuffer(Editor *e, char *file){
 		buf->filename = xmalloc(strlen(file) + 1);
 		strcpy(buf->filename, file);
 	}
+	buf->redisp = 1;
 	keypad(buf->win, TRUE);
 
 	memset(buf->funcs, 0, (32 + (KEY_UNDO - KEY_BREAK) + 1) * 8);
@@ -187,19 +207,19 @@ newbuffer(Editor *e, char *file){
 void
 open(Editor *e){
 	char *name = prompt(e, "Name: ");
-	Buffer *b = e->current;
+	Buffer *b = e->txtbuf;
 	if(name == NULL)
 		return;
 	// check for existng buffer
 	do{
 		if(b->filename != NULL && streql(b->filename, name)){
-			e->current = b;
+			e->txtbuf = b;
 			free(name);
-			e->current->redisp = 1;
+			e->txtbuf->redisp = 1;
 			return;
 		}
 		b = b->next;
-	}while(b != e->current);
+	}while(b != e->txtbuf);
 
 	Buffer *buf = newbuffer(e, name);
 	addbuffer(e, buf, 0);
@@ -210,14 +230,14 @@ open(Editor *e){
 // Closes the current buffer.
 void
 close(Editor *e){
-	Buffer *b = e->current;
+	Buffer *b = e->txtbuf;
 	Buffer *new;
 	char msg[1024];
 	char *txt;
 
 	if(b->changed){
 		snprintf(msg, 1023, "%s has changed. Save? ",
-				 e->current->filename);
+				 e->txtbuf->filename);
 		txt = prompt(e, msg);
 		if(txt == NULL)
 			return;
@@ -231,7 +251,7 @@ close(Editor *e){
 
 	if(b->next == b){
 		free(b);
-		e->current = NULL;
+		e->txtbuf = NULL;
 		new = newbuffer(e, NULL);
 		addbuffer(e, new, 0);
 		nextbuffer(e);
@@ -249,7 +269,7 @@ save(Editor *e){
 	FILE *fd;
 	char *txt;
 	char m[1024];
-	Buffer *b = e->current;
+	Buffer *b = e->txtbuf;
 
 	if(b->changed == 0){
 		msg(e, "File hasn't changed");
@@ -271,7 +291,7 @@ save(Editor *e){
 		msg(e, m);
 	}else{
 		msg(e, "wrote file");
-		e->current->changed = 0;
+		e->txtbuf->changed = 0;
 	}
 	free(txt);
 }
@@ -282,8 +302,19 @@ saveas(Editor *e){
 	char* name = prompt(e, "Filename: ");
 	if(name == NULL)
 		return;
-	e->current->filename = name;
+	e->txtbuf->filename = name;
 	save(e);
+}
+
+void
+stoploop(Editor *e){
+	e->stop = 1;
+}
+
+void
+cancelloop(Editor *e){
+	e->stop = 1;
+	e->cancel = 1;
 }
 
 // Quits drte.
@@ -291,11 +322,11 @@ void
 quit(Editor *e){
 	char *txt;
 	char m[1024];
-	Buffer *first = e->current;
+	Buffer *first = e->txtbuf;
 
 	do{
-		if(e->current->filename != NULL && e->current->changed == 1){
-			snprintf(m, 1023, "Save %s? ", e->current->filename);
+		if(e->txtbuf->filename != NULL && e->txtbuf->changed == 1){
+			snprintf(m, 1023, "Save %s? ", e->txtbuf->filename);
 			txt = prompt(e, m);
 			if(txt == NULL)
 				return;
@@ -303,10 +334,10 @@ quit(Editor *e){
 				save(e);
 			free(txt);
 		}
-		e->current = e->current->next;
-	}while(e->current != first);
+		e->txtbuf = e->txtbuf->next;
+	}while(e->txtbuf != first);
 
-	exit(0);
+	e->stop = 1;
 }
 
 void
@@ -317,35 +348,35 @@ suspend(Editor *e){
 // Selects the previous buffer in the buffer list.
 void
 prevbuffer(Editor *e){
-	e->current = e->current->prev;
-	e->current->redisp = 1;
-	wclear(e->current->win);
+	e->txtbuf = e->txtbuf->prev;
+	e->txtbuf->redisp = 1;
+	wclear(e->txtbuf->win);
 }
 
 // Advances to the next buffer in the buffer list.
 void
 nextbuffer(Editor *e){
-	e->current = e->current->next;
-	e->current->redisp = 1;
-	wclear(e->current->win);
+	e->txtbuf = e->txtbuf->next;
+	e->txtbuf->redisp = 1;
+	wclear(e->txtbuf->win);
 }
 
 void
 msg(Editor *e, char *msg){
 	// We can't show a msg when there is a prompt.
-	if(e->current == e->prbuf){
+	if(e->txtbuf == e->prbuf){
 		flash();
 		return;
 	}
-	mvwaddstr(e->bar, 0, 0, msg);
+	mvwaddstr(e->prbuf->win, 0, 0, msg);
 	for(size_t i = strlen(msg); i <= COLS; i++)
-		waddstr(e->bar, " ");
+		waddstr(e->prbuf->win, " ");
 	e->msg = 1;
 }
 
 void
 cx(Editor *e){
-	int c = wgetch(e->current->win);
+	int c = wgetch(e->txtbuf->win);
 	switch(c){
 	case Ctrl('S'):
 	case 's': save(e); break;

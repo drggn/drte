@@ -150,7 +150,7 @@ up(Editor *e){
 	size_t w;
 
 	if(b->lastfunc != up)
-		p = e->current->col;
+		p = e->txtbuf->col;
 
 	bol(e);
 	left(e);
@@ -175,7 +175,7 @@ down(Editor *e){
 	size_t w;
 
 	if(b->lastfunc != down)
-		p = e->current->col;
+		p = e->txtbuf->col;
 	eol(e);
 	right(e);
 
