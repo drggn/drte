@@ -28,6 +28,7 @@ loop(Editor *e){
 				e->prbuf->col = coloff;
 			wclear(e->prbuf->win);
 			free(prmtxt);
+
 			prmtxt = gbftxt(e->prbuf->gbuf);
 			mvwaddstr(e->prbuf->win, 0, 0, e->promptstr);
 			mvwaddstr(e->prbuf->win, 0, coloff, prmtxt);
