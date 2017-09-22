@@ -67,7 +67,7 @@ main(int argc, char **argv){
 	signal(SIGCONT, SIG_DFL);
 
 	e = xmalloc(sizeof(*e));
-	e->msg = 0;
+	memset(e, 0, sizeof(*e));
 	e->txtbuf = NULL;
 
 	for(size_t i = 1; i < argc; i++){
