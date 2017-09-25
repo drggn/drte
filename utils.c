@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define NCURSES_KEYS (KEY_MAX - KEY_MIN + 1)
+
 void *xmalloc(size_t size){
 	void *p;
 	if((p = malloc(size)) != NULL){

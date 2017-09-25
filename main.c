@@ -20,7 +20,7 @@ _endwin(void){
 static void
 mkprfuncs(Editor *e){
 	Func *funcs = e->prbuf->funcs;
-	memset(funcs, 0, (32 + (KEY_UNDO - KEY_BREAK) + 1) * 8);
+	memset(funcs, 0, (NCURSESKEYS * 8));
 	funcs[Ctrl('A')] = bol;
 	funcs[Ctrl('B')] = left;
 	funcs[Ctrl('C')] = cancelloop;

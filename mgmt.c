@@ -59,7 +59,7 @@ loop(Editor *e){
 		wmove(e->current->win, e->current->curline, e->current->col);
 
 		int c = wgetch(e->current->win);
-		if((c >= 0 && c <= 31) || (c >= KEY_BREAK && c <= KEY_UNDO)){
+		if((c >= 0 && c <= 31) || (c >= KEY_MIN && c <= KEY_MAX)){
 			if(e->current->funcs[Code(c)] != NULL){
 				e->current->funcs[Code(c)](e);
 				e->current->lastfunc = e->current->funcs[Code(c)];
@@ -168,7 +168,7 @@ newbuffer(Editor *e, char *file){
 	buf->redisp = 1;
 	keypad(buf->win, TRUE);
 
-	memset(buf->funcs, 0, (32 + (KEY_UNDO - KEY_BREAK) + 1) * 8);
+	memset(buf->funcs, 0, (NCURSESKEYS * 8));
 
 	buf->funcs[Ctrl('A')] = bol;
 	buf->funcs[Ctrl('B')] = left;

@@ -1,5 +1,5 @@
 #define Ctrl(c) ((c) - 64)
-#define Ncur(c) ((KEY_UNDO - (c)) + 32)
+#define Ncur(c) (31 + ((c) - KEY_MIN))
 #define Code(c) ((c) >= 0 && (c) <= 31 ? (c) : Ncur((c)))
 
 // In edit.c

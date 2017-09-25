@@ -1,6 +1,8 @@
 struct Editor;
 typedef void(*Func)(struct Editor *);
 
+#define NCURSESKEYS ((KEY_MAX - KEY_MIN) - 2)
+
 typedef struct Buffer{
 	size_t col;
 	size_t line;
@@ -14,7 +16,7 @@ typedef struct Buffer{
 	Gapbuf *gbuf;
 	WINDOW *win;
 	Func lastfunc;
-	Func funcs[32 + (KEY_UNDO - KEY_BREAK) + 1];
+	Func funcs[NCURSESKEYS];
 
 	struct Buffer *next;
 	struct Buffer *prev;
