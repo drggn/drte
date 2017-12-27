@@ -48,11 +48,71 @@ loop(Editor *e){
 			e->current = e->txtbuf;
 		}
 		wrefresh(e->prbuf->win);
+
+		// Draw the text buffer.
 		if(e->txtbuf->redisp){
+			int maxlines;
+			int maxcols;
+			size_t line = 0;
+			size_t col = 0;
+			int lastwhitecol = -1;
+			int lastwhiteline = -1;
+
 			free(txt);
 			wclear(e->txtbuf->win);
+
 			txt = gbftxt(e->txtbuf->gbuf);
-			mvwaddstr(e->txtbuf->win, 0, 0, txt + e->txtbuf->vis);
+			size_t current = e->txtbuf->vis;
+			getmaxyx(e->txtbuf->win, maxlines, maxcols);
+
+			while(txt[current]){
+				size_t wid;
+				char cp[5] = {0};
+				int size = bytes(txt[current]);
+
+				for(int i = 0; i < size; i++, current++){
+					cp[i] = txt[current];
+				}
+				wid = width(cp[0]);
+				if(iswhitespace(cp[0])){
+					if(lastwhitecol == -1){
+						lastwhitecol = col;
+						lastwhiteline = line;
+					}
+				}else{
+					lastwhitecol = -1;
+					lastwhiteline = -1;
+				}
+				if(cp[0] == '\n'){
+					if(lastwhitecol != -1){
+						// draw trailing whitespace
+						int c = lastwhitecol;
+						int l = lastwhiteline;
+						wattron(e->txtbuf->win, A_REVERSE);
+						while((c != col) || (l != line)){
+							mvwaddstr(e->txtbuf->win, l, c, ".");
+							if(c >= maxcols - 1){
+								c = 0;
+								l++;
+							}else{
+								c++;
+							}
+						}
+						wattroff(e->txtbuf->win, A_REVERSE);
+					}
+					line++;
+					col = 0;
+					lastwhitecol = -1;
+					lastwhiteline = -1;
+				}else if(col + wid >= maxcols){
+					line++;
+					col = 0;
+				}
+				if(line >= maxlines - 1)
+					break;
+				mvwaddstr(e->txtbuf->win, line, col, cp);
+				col += wid;
+			}
 			wrefresh(e->txtbuf->win);
 			e->txtbuf->redisp = 0;
 		}

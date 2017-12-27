@@ -13,6 +13,20 @@ void *xmalloc(size_t size){
 	}
 }
 
+// TODO: Unicode
+int
+isnewline(unsigned char c){
+	return c == '\n';
+}
+
+// Returns true, if c is the first byte of a white space code point.
+// TODO: Unicode
+int
+iswhitespace(unsigned char c){
+	return (c == '\t' || c == ' ' || isnewline(c));
+}
+
+
 // Given the first byte of a code point, the function
 // returns the number of bytes the code points consist of.
 size_t
