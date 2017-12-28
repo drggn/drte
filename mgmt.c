@@ -109,7 +109,7 @@ loop(Editor *e){
 					line++;
 					col = 0;
 				}
-				if(line >= maxlines - 1)
+				if(line >= maxlines)
 					break;
 				mvwaddstr(e->txtbuf->win, line, col, cp);
 				col += wid;
