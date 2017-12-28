@@ -104,6 +104,7 @@ loop(Editor *e){
 					col = 0;
 					lastwhitecol = -1;
 					lastwhiteline = -1;
+					continue;
 				}else if(col + wid >= maxcols){
 					line++;
 					col = 0;
