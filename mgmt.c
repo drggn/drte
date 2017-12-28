@@ -144,6 +144,11 @@ loop(Editor *e){
 	}while(!e->stop);
 }
 
+static void
+redraw(Editor *e){
+	e->current->redisp = 1;
+}
+
 // Displays prompt in the status bar. Returns
 // the text entered by the user.
 static char *
@@ -244,6 +249,8 @@ newbuffer(Editor *e, char *file){
 	buf->funcs[Ctrl('P')] = up;
 	buf->funcs[Ctrl('X')] = cx;
 	buf->funcs[Ctrl('Z')] = suspend;
+
+	buf->funcs[Ncur(KEY_RESIZE)] = redraw;
 
 	buf->funcs[Ncur(KEY_UP)] = up;
 	buf->funcs[Ncur(KEY_DOWN)] = down;
