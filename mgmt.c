@@ -24,20 +24,20 @@ loop(Editor *e){
 			e->msg = 0;
 		}else if(e->prompt){
 			size_t coloff = strlen(e->promptstr);
-			if(e->prbuf->col == 0)
-				e->prbuf->col = coloff;
+			if(e->prbuf->curcol == 0)
+				e->prbuf->curcol = coloff;
 			wclear(e->prbuf->win);
 			free(prmtxt);
 
 			prmtxt = gbftxt(e->prbuf->gbuf);
 			mvwaddstr(e->prbuf->win, 0, 0, e->promptstr);
 			mvwaddstr(e->prbuf->win, 0, coloff, prmtxt);
-			wmove(e->prbuf->win, 0, e->prbuf->col + coloff);
+			wmove(e->prbuf->win, 0, e->prbuf->curcol + coloff);
 			e->current = e->prbuf;
 		}else{
 			char msg[COLS];
 			snprintf(msg, COLS - 1, "(%ld,%ld) vis: %ld %ld/%ld: %s%s",
-					 e->txtbuf->line, e->txtbuf->col, e->txtbuf->vis,
+					 e->txtbuf->line, e->txtbuf->curcol, e->txtbuf->vis,
 					 e->txtbuf->off, e->txtbuf->bytes,
 					 e->txtbuf->filename ? e->txtbuf->filename : "Unnamed",
 					 e->txtbuf->changed ? "*" : " ");
@@ -116,7 +116,7 @@ loop(Editor *e){
 			wrefresh(e->txtbuf->win);
 			e->txtbuf->redisp = 0;
 		}
-		wmove(e->current->win, e->current->curline, e->current->col);
+		wmove(e->current->win, e->current->curline, e->current->curcol);
 
 		int c = wgetch(e->current->win);
 		if((c >= 0 && c <= 31) || (c >= KEY_MIN && c <= KEY_MAX)){
@@ -149,7 +149,7 @@ static char *
 prompt(Editor *e, char *prompt){
 	e->prompt = 1;
 	e->promptstr = prompt;
-	e->prbuf->col = 0;
+	e->prbuf->curcol = 0;
 	e->prbuf->off = 0;
 	e->prbuf->bytes = 0;
 	gbfclear(e->prbuf->gbuf);

@@ -4,8 +4,8 @@ typedef void(*Func)(struct Editor *);
 #define NCURSESKEYS ((KEY_MAX - KEY_MIN) - 2)
 
 typedef struct Buffer{
-	size_t col;
 	size_t line;
+	size_t curcol;
 	size_t curline;
 	size_t off;
 	size_t vis;

@@ -67,12 +67,12 @@ backwvis(Buffer *b){
 
 static void
 forwcol(Buffer *b){
-	b->col += width(gbfat(b->gbuf, b->off));
+	b->curcol += width(gbfat(b->gbuf, b->off));
 }
 
 static void
 backwcol(Buffer *b){
-	b->col -= width(gbfat(b->gbuf, b->off));
+	b->curcol -= width(gbfat(b->gbuf, b->off));
 }
 
 // Scrolls up by one line.
@@ -135,7 +135,7 @@ right(Editor *e){
 		}else{
 			b->curline++;
 		}
-		b->col = 0;
+		b->curcol = 0;
 	}else{
 		forwcol(b);
 	}
@@ -150,7 +150,7 @@ up(Editor *e){
 	size_t w;
 
 	if(b->lastfunc != up)
-		p = e->txtbuf->col;
+		p = e->txtbuf->curcol;
 
 	bol(e);
 	left(e);
@@ -158,9 +158,9 @@ up(Editor *e){
 
 	while(b->off != b->bytes && gbfat(b->gbuf, b->off) != '\n'){
 		w = width(gbfat(b->gbuf, b->off));
-		if(b->col + w <= p){
+		if(b->curcol + w <= p){
 			forwoff(b);
-			b->col += w;
+			b->curcol += w;
 		}else{
 			break;
 		}
@@ -175,15 +175,15 @@ down(Editor *e){
 	size_t w;
 
 	if(b->lastfunc != down)
-		p = e->txtbuf->col;
+		p = e->txtbuf->curcol;
 	eol(e);
 	right(e);
 
 	while(b->off != b->bytes && gbfat(b->gbuf, b->off) != '\n'){
 		w = width(gbfat(b->gbuf, b->off));
-		if(b->col + w <= p){
+		if(b->curcol + w <= p){
 			forwoff(b);
-			b->col += w;
+			b->curcol += w;
 		}else{
 			break;
 		}
@@ -205,7 +205,7 @@ bol(Editor *e){
 			break;
 		}
 	}while(b->off != 0);
-	b->col = 0;
+	b->curcol = 0;
 }
 
 // Moves the cursor to the end of the line.
