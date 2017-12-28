@@ -118,26 +118,31 @@ left(Editor *e){
 // Moves the cursor one position to the right.
 void
 right(Editor *e){
-	int x;
-	int y;
+	int maxx;
+	int maxy;
 	Buffer *b = e->current;
 
 	if(b->off == b->bytes){
 		msg(e, "End of buffer");
 		return;
 	}
+
+	getmaxyx(b->win, maxy, maxx);
+
 	if(gbfat(b->gbuf, b->off) == '\n'){
 		b->line++;
-		getyx(b->win, y, x);
-		(void)x; // suppresses warnings
-		if(y == LINES - 2){
-			scrollup(b);
-		}else{
-			b->curline++;
-		}
+		b->curline++;
 		b->curcol = 0;
 	}else{
 		forwcol(b);
+		if(b->curcol >= maxx - 1){
+			b->curcol = 0;
+			b->curline++;
+		}
+	}
+	if(b->curline >= maxy){
+		scrollup(b);
+		b->curline = maxy - 1;
 	}
 	forwoff(b);
 }
