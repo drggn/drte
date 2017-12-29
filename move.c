@@ -36,26 +36,27 @@ backoff(Buffer *b){
 	}
 }
 
-static void
+static int
 forwvis(Buffer *b){
 	size_t start = b->vis;
 
 	while(gbfat(b->gbuf, b->vis) != '\n'){
 		if(b->vis == b->bytes){
 			b->vis = start;
-			return;
+			return 0;
 		}
 		b->vis++;
 	}
 	b->vis++;
+	return -1;
 }
 
-static void
+static int
 backwvis(Buffer *b){
 	int nls = 0; // how many \n did we see?
 
 	if(b->vis == 0)
-		return;
+		return 0;
 	do{
 		b->vis--;
 		if(gbfat(b->gbuf, b->vis) == '\n')
@@ -63,6 +64,7 @@ backwvis(Buffer *b){
 	}while(b->vis > 0 && nls != 2);
 	if(nls == 2)
 		b->vis++;
+	return 1;
 }
 
 static void
@@ -76,19 +78,25 @@ backwcol(Buffer *b){
 }
 
 // Scrolls up by one line.
-static void
+static int
 scrollup(Buffer *b){
-	forwvis(b);
-	wclear(b->win);
-	b->redisp = 1;
+	if(forwvis(b)){
+		wclear(b->win);
+		b->redisp = 1;
+		return 1;
+	}
+	return 0;
 }
 
 // Scrolls down by one line.
-static void
+static int
 scrolldown(Buffer *b){
-	backwvis(b);
-	wclear(b->win);
-	b->redisp = 1;
+	if(backwvis(b)){
+		wclear(b->win);
+		b->redisp = 1;
+		return 1;
+	}
+	return 0;
 }
 
 // Moves the cursor one position to the left.
