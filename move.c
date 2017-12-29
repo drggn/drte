@@ -257,7 +257,6 @@ eol(Editor *e){
 		return;
 	}
 	while(b->off != b->bytes && gbfat(b->gbuf, b->off) != '\n'){
-		forwcol(b);
-		forwoff(b);
+		right(e);
 	}
 }
