@@ -153,9 +153,33 @@ redraw(Editor *e){
 // Called when the terminal is resized
 static void
 resize(Editor *e){
-	wresize(e->current->win, LINES - 1, COLS);
+	Buffer *b = e->current;
+	wresize(b->win, LINES - 1, COLS);
 	mvwin(e->prbuf->win, LINES - 1, 0);
 	redraw(e);
+
+	// prevent cursor from getting out of sync
+	size_t start = b->vis;
+	b->curline = 0;
+	b->curcol = 0;
+
+	while(start != b->off){
+		char c = gbfat(b->gbuf, start);
+		start += bytes(c);
+		b->curcol += width(c);
+
+		if(isnewline(c)){
+			b->curcol = 0;
+			b->curline++;
+		}
+		if(b->curcol >= COLS - 1){
+			b->curcol = 0;
+			b->curline++;
+		}
+	}
+	if(b->curline >= LINES){
+		center(e);
+	}
 }
 
 // Displays prompt in the status bar. Returns
