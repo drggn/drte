@@ -150,6 +150,14 @@ redraw(Editor *e){
 	e->current->redisp = 1;
 }
 
+// Called when the terminal is resized
+static void
+resize(Editor *e){
+	wresize(e->current->win, LINES - 1, COLS);
+	mvwin(e->prbuf->win, LINES - 1, 0);
+	redraw(e);
+}
+
 // Displays prompt in the status bar. Returns
 // the text entered by the user.
 static char *
@@ -251,7 +259,7 @@ newbuffer(Editor *e, char *file){
 	buf->funcs[Ctrl('X')] = cx;
 	buf->funcs[Ctrl('Z')] = suspend;
 
-	buf->funcs[Ncur(KEY_RESIZE)] = redraw;
+	buf->funcs[Ncur(KEY_RESIZE)] = resize;
 
 	buf->funcs[Ncur(KEY_UP)] = up;
 	buf->funcs[Ncur(KEY_DOWN)] = down;
