@@ -35,8 +35,8 @@ loop(Editor *e){
 			wmove(e->prbuf->win, 0, e->prbuf->curcol + coloff);
 			e->current = e->prbuf;
 		}else{
-			char msg[COLS];
-			snprintf(msg, COLS - 1, "(%ld,%ld) vis: %ld %ld/%ld: %s%s",
+			char msg[COLS + 1];
+			snprintf(msg, COLS, "(%ld,%ld) vis: %ld %ld/%ld: %s%s",
 					 e->txtbuf->line, e->txtbuf->curcol, e->txtbuf->vis,
 					 e->txtbuf->off, e->txtbuf->bytes,
 					 e->txtbuf->filename ? e->txtbuf->filename : "Unnamed",
