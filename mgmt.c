@@ -37,7 +37,7 @@ loop(Editor *e){
 		}else{
 			char msg[COLS + 1];
 			snprintf(msg, COLS, "(%ld,%ld) vis: %ld %ld/%ld: %s%s",
-					 e->txtbuf->line, e->txtbuf->curcol, e->txtbuf->vis,
+					 e->txtbuf->curline, e->txtbuf->curcol, e->txtbuf->vis,
 					 e->txtbuf->off, e->txtbuf->bytes,
 					 e->txtbuf->filename ? e->txtbuf->filename : "Unnamed",
 					 e->txtbuf->changed ? "*" : " ");
