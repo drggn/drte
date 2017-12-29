@@ -209,24 +209,25 @@ up(Editor *e){
 void
 down(Editor *e){
 	Buffer *b = e->current;
+	size_t line = b->curline;
 	static size_t p;
 	size_t w;
 
 	if(b->lastfunc != down)
 		p = e->txtbuf->curcol;
-	eol(e);
-	right(e);
 
-	while(b->off != b->bytes && gbfat(b->gbuf, b->off) != '\n'){
+	// Move the cursor to the beginning of the next line
+	do{
+		right(e);
+	}while(b->curcol > p && b->off != b->bytes);
+
+	while(gbfat(b->gbuf, b->off) != '\n' && b->off != b->bytes){
 		w = width(gbfat(b->gbuf, b->off));
-		if(b->curcol + w <= p){
-			forwoff(b);
-			b->curcol += w;
-		}else{
+		if(b->curcol + w > p){
 			break;
 		}
+		right(e);
 	}
-
 }
 
 // Moves the cursor to the beginning of the line.
