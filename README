@@ -36,6 +36,7 @@ Keybindings:
     down              Ctrl-N       Down
     bol               Ctrl-A       Home
     eol               Ctrl-E       End
+    center            Ctrl-L
 
   Deletion
     before cursor     Ctrl-H       Backspace

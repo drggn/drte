@@ -253,6 +253,7 @@ newbuffer(Editor *e, char *file){
 	buf->funcs[Ctrl('H')] = bksp;
 	buf->funcs[Ctrl('I')] = tab;
 	buf->funcs[Ctrl('J')] = newl;
+	buf->funcs[Ctrl('L')] = center;
 	buf->funcs[Ctrl('M')] = newl;
 	buf->funcs[Ctrl('N')] = down;
 	buf->funcs[Ctrl('P')] = up;

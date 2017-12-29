@@ -99,6 +99,31 @@ scrolldown(Buffer *b){
 	return 0;
 }
 
+// Move the line with the cursor to the center of the screen
+void
+center(Editor *e){
+	Buffer *b = e->current;
+	size_t start = b->vis;
+	size_t goal = LINES / 2;
+
+	while(b->curline < goal){
+		if(!scrolldown(b)){
+			msg(e, "Can't scroll down here.");
+			b->vis = start;
+			return;
+		}
+		b->curline++;
+	}
+	while(b->curline > goal){
+		if(!scrollup(b)){
+			msg(e, "Can't scroll up here.");
+			b->vis = start;
+			return;
+		}
+		b->curline--;
+	}
+}
+
 // Moves the cursor one position to the left.
 void
 left(Editor *e){

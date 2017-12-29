@@ -12,6 +12,7 @@ void bksp(Editor *e);
 // In move.c
 void forwoff(Buffer *b);
 void backoff(Buffer *b);
+void center(Editor *e);
 void left(Editor *e);
 void right(Editor *e);
 void up(Editor *e);
