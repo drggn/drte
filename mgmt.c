@@ -144,6 +144,7 @@ loop(Editor *e){
 	}while(!e->stop);
 }
 
+// Redraw the display
 static void
 redraw(Editor *e){
 	e->current->redisp = 1;
