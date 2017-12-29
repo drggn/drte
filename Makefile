@@ -1,4 +1,4 @@
-CC ?= musl-gcc
+CC ?= gcc
 CFLAGS ?= -Os -Wall -std=c99 -pedantic -g
 NCURSES = -lncursesw
 NCURSES-STATIC = -lncursesw -ltinfo
