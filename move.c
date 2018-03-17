@@ -39,16 +39,24 @@ backoff(Buffer *b){
 static int
 forwvis(Buffer *b){
 	size_t start = b->vis;
+	size_t col = 0;
+	size_t w;
 
 	while(gbfat(b->gbuf, b->vis) != '\n'){
+		w = width(gbfat(b->gbuf, b->vis));
+
 		if(b->vis == b->bytes){
 			b->vis = start;
 			return 0;
 		}
-		b->vis++;
+		if(col + w >= COLS - 1){
+			break;
+		}
+		b->vis += bytes(gbfat(b->gbuf, b->vis));
+		col += w;
 	}
-	b->vis++;
-	return -1;
+	b->vis += bytes(gbfat(b->gbuf, b->vis));;
+	return 1;
 }
 
 static int
