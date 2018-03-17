@@ -49,7 +49,7 @@ forwvis(Buffer *b){
 			b->vis = start;
 			return 0;
 		}
-		if(col + w >= COLS - 1){
+		if(LineWrap(col + w)){
 			break;
 		}
 		b->vis += bytes(gbfat(b->gbuf, b->vis));
@@ -176,7 +176,7 @@ right(Editor *e){
 		b->curcol = 0;
 	}else{
 		forwcol(b);
-		if(b->curcol >= maxx - 1){
+		if(LineWrap(b->curcol)){
 			b->curcol = 0;
 			b->curline++;
 		}

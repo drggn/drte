@@ -95,7 +95,7 @@ loop(Editor *e){
 						wattron(e->txtbuf->win, A_REVERSE);
 						while((c != col) || (l != line)){
 							mvwaddstr(e->txtbuf->win, l, c, ".");
-							if(c >= maxcols - 1){
+							if(LineWrap(c)){
 								c = 0;
 								l++;
 							}else{
@@ -109,7 +109,7 @@ loop(Editor *e){
 					lastwhitecol = -1;
 					lastwhiteline = -1;
 					continue;
-				}else if(col >= maxcols - 1){
+				}else if(LineWrap(col)){
 					line++;
 					col = 0;
 				}
@@ -175,7 +175,7 @@ resize(Editor *e){
 			b->curcol = 0;
 			b->curline++;
 		}
-		if(b->curcol >= COLS - 1){
+		if(LineWrap(b->curcol)){
 			b->curcol = 0;
 			b->curline++;
 		}
