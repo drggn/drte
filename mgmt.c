@@ -166,6 +166,7 @@ resize(Editor *e){
 
 	while(start != b->off){
 		char c = gbfat(b->gbuf, start);
+
 		start += bytes(c);
 		b->curcol += width(c);
 
