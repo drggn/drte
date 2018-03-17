@@ -73,6 +73,8 @@ loop(Editor *e){
 				for(int i = 0; i < size; i++, current++){
 					cp[i] = txt[current];
 				}
+
+				mvwaddstr(e->txtbuf->win, line, col, cp);
 				wid = width(cp[0]);
 				if(iswhitespace(cp[0])){
 					if(lastwhitecol == -1){
@@ -111,7 +113,6 @@ loop(Editor *e){
 				}
 				if(line >= maxlines)
 					break;
-				mvwaddstr(e->txtbuf->win, line, col, cp);
 				col += wid;
 			}
 			wrefresh(e->txtbuf->win);
