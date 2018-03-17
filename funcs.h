@@ -2,6 +2,8 @@
 #define Ncur(c) (31 + ((c) - KEY_MIN))
 #define Code(c) ((c) >= 0 && (c) <= 31 ? (c) : Ncur((c)))
 
+#define LineWrap(col) ((col) >= COLS - 1)
+
 // In edit.c
 void ins(Editor *e, char *s);
 void tab(Editor *e);
