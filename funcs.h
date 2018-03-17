@@ -19,6 +19,7 @@ void up(Editor *e);
 void down(Editor *e);
 void bol(Editor *e);
 void eol(Editor *e);
+void pgdown(Editor *e);
 
 // In mgmt.c
 void loop(Editor *e);

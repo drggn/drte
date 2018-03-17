@@ -260,3 +260,20 @@ eol(Editor *e){
 		right(e);
 	}
 }
+
+void
+pgdown(Editor *e){
+	Buffer *b = e->current;
+	size_t start = b->vis;
+
+	for(size_t i = 0; i < LINES - 1; i++){
+		if(!scrollup(b)){
+			b->vis = start;
+			msg(e, "End of buffer");
+			return;
+		}
+	}
+	b->off = b->vis;
+	b->curline = 0;
+	b->curcol = 0;
+}
