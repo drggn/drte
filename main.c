@@ -13,12 +13,12 @@
 
 // Wrapper for atexit.
 static void
-_endwin(void){
+_endwin(void) {
 	endwin();
 }
 
 static void
-mkprfuncs(Editor *e){
+mkprfuncs(Editor *e) {
 	Func *funcs = e->prbuf->funcs;
 	memset(funcs, 0, (NCURSESKEYS * 8));
 	funcs[Ctrl('A')] = bol;
@@ -43,7 +43,7 @@ mkprfuncs(Editor *e){
 }
 
 static void
-mkprbuf(Editor *e){
+mkprbuf(Editor *e) {
 	e->prbuf = xmalloc(sizeof(*(e->prbuf)));
 	memset(e->prbuf, 0, sizeof(*(e->prbuf)));
 	e->prbuf->gbuf = gbfnew(NULL, 0);
@@ -54,7 +54,7 @@ mkprbuf(Editor *e){
 }
 
 int
-main(int argc, char **argv){
+main(int argc, char **argv) {
 	Editor *e;
 	Buffer *buf;
 
@@ -70,15 +70,15 @@ main(int argc, char **argv){
 	memset(e, 0, sizeof(*e));
 	e->txtbuf = NULL;
 
-	for(size_t i = 1; i < argc; i++){
+	for (size_t i = 1; i < argc; i++) {
 		buf = newbuffer(e, argv[i]);
 		addbuffer(e, buf, 1);
 	}
-	if(e->txtbuf == NULL){
+	if (e->txtbuf == NULL) {
 		buf = newbuffer(e, NULL);
 		addbuffer(e, buf, 0);
 	}
-	if(e->txtbuf == NULL){
+	if (e->txtbuf == NULL) {
 		fprintf(stderr, "Init failed\n");
 		return -1;
 	}

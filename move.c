@@ -9,8 +9,8 @@
 
 // Returns true if c is the first byte of a character.
 static int
-fstbyte(unsigned char c){
-	if(c < 128 || (c & 0xC0) == 0xC0)
+fstbyte(unsigned char c) {
+	if (c < 128 || (c & 0xC0) == 0xC0)
 		return 1;
 	else
 		return 0;
@@ -18,38 +18,38 @@ fstbyte(unsigned char c){
 
 // Sets b->off to the beginning of the next character.
 void
-forwoff(Buffer *b){
+forwoff(Buffer *b) {
 	int i;
 	unsigned char c = gbfat(b->gbuf, b->off);
 	i = bytes(c);
-	if((b->off + i) <= b->bytes)
+	if ((b->off + i) <= b->bytes)
 		b->off += i;
 }
 
 // Sets b->off to the beginning of the previous character.
 void
-backoff(Buffer *b){
-	if(b->off != 0){
-		do{
+backoff(Buffer *b) {
+	if (b->off != 0) {
+		do {
 			b->off--;
-		}while(!fstbyte(gbfat(b->gbuf, b->off)));
+		} while (!fstbyte(gbfat(b->gbuf, b->off)));
 	}
 }
 
 static int
-forwvis(Buffer *b){
+forwvis(Buffer *b) {
 	size_t start = b->vis;
 	size_t col = 0;
 	size_t w;
 
-	while(gbfat(b->gbuf, b->vis) != '\n'){
+	while (gbfat(b->gbuf, b->vis) != '\n') {
 		w = width(gbfat(b->gbuf, b->vis));
 
-		if(b->vis == b->bytes){
+		if (b->vis == b->bytes) {
 			b->vis = start;
 			return 0;
 		}
-		if(LineWrap(col + w)){
+		if (LineWrap(col + w)) {
 			break;
 		}
 		b->vis += bytes(gbfat(b->gbuf, b->vis));
@@ -60,35 +60,35 @@ forwvis(Buffer *b){
 }
 
 static int
-backwvis(Buffer *b){
+backwvis(Buffer *b) {
 	int nls = 0; // how many \n did we see?
 
-	if(b->vis == 0)
+	if (b->vis == 0)
 		return 0;
-	do{
+	do {
 		b->vis--;
-		if(gbfat(b->gbuf, b->vis) == '\n')
+		if (gbfat(b->gbuf, b->vis) == '\n')
 			nls++;
-	}while(b->vis > 0 && nls != 2);
-	if(nls == 2)
+	} while (b->vis > 0 && nls != 2);
+	if (nls == 2)
 		b->vis++;
 	return 1;
 }
 
 static void
-forwcol(Buffer *b){
+forwcol(Buffer *b) {
 	b->curcol += width(gbfat(b->gbuf, b->off));
 }
 
 static void
-backwcol(Buffer *b){
+backwcol(Buffer *b) {
 	b->curcol -= width(gbfat(b->gbuf, b->off));
 }
 
 // Scrolls up by one line.
 static int
-scrollup(Buffer *b){
-	if(forwvis(b)){
+scrollup(Buffer *b) {
+	if (forwvis(b)) {
 		wclear(b->win);
 		b->redisp = 1;
 		return 1;
@@ -98,8 +98,8 @@ scrollup(Buffer *b){
 
 // Scrolls down by one line.
 static int
-scrolldown(Buffer *b){
-	if(backwvis(b)){
+scrolldown(Buffer *b) {
+	if (backwvis(b)) {
 		wclear(b->win);
 		b->redisp = 1;
 		return 1;
@@ -109,21 +109,21 @@ scrolldown(Buffer *b){
 
 // Move the line with the cursor to the center of the screen
 void
-center(Editor *e){
+center(Editor *e) {
 	Buffer *b = e->current;
 	size_t start = b->vis;
 	size_t goal = LINES / 2;
 
-	while(b->curline < goal){
-		if(!scrolldown(b)){
+	while (b->curline < goal) {
+		if (!scrolldown(b)) {
 			msg(e, "Can't scroll down here.");
 			b->vis = start;
 			return;
 		}
 		b->curline++;
 	}
-	while(b->curline > goal){
-		if(!scrollup(b)){
+	while (b->curline > goal) {
+		if (!scrollup(b)) {
 			msg(e, "Can't scroll up here.");
 			b->vis = start;
 			return;
@@ -134,54 +134,54 @@ center(Editor *e){
 
 // Moves the cursor one position to the left.
 void
-left(Editor *e){
+left(Editor *e) {
 	Buffer *b = e->current;
 
-	if(b->off == 0){
+	if (b->off == 0) {
 		msg(e, "Beginning of buffer");
 		return;
 	}
 	backoff(b);
-	if(gbfat(b->gbuf, b->off) == '\n'){
+	if (gbfat(b->gbuf, b->off) == '\n') {
 		b->line--;
-		if(b->curline == 0){
+		if (b->curline == 0) {
 			scrolldown(b);
-		}else{
+		} else {
 			b->curline--;
 		}
 		bol(e);
 		eol(e);
-	}else{
+	} else {
 		backwcol(b);
 	}
 }
 
 // Moves the cursor one position to the right.
 void
-right(Editor *e){
+right(Editor *e) {
 	int maxx;
 	int maxy;
 	Buffer *b = e->current;
 
-	if(b->off == b->bytes){
+	if (b->off == b->bytes) {
 		msg(e, "End of buffer");
 		return;
 	}
 
 	getmaxyx(b->win, maxy, maxx);
 
-	if(gbfat(b->gbuf, b->off) == '\n'){
+	if (gbfat(b->gbuf, b->off) == '\n') {
 		b->line++;
 		b->curline++;
 		b->curcol = 0;
-	}else{
+	} else {
 		forwcol(b);
-		if(LineWrap(b->curcol)){
+		if (LineWrap(b->curcol)) {
 			b->curcol = 0;
 			b->curline++;
 		}
 	}
-	if(b->curline >= maxy){
+	if (b->curline >= maxy) {
 		scrollup(b);
 		b->curline = maxy - 1;
 	}
@@ -190,24 +190,24 @@ right(Editor *e){
 
 // Moves the cursor one line up.
 void
-up(Editor *e){
+up(Editor *e) {
 	Buffer *b = e->current;
 	static size_t p;
 	size_t w;
 
-	if(b->lastfunc != up)
+	if (b->lastfunc != up)
 		p = e->txtbuf->curcol;
 
 	bol(e);
 	left(e);
 	bol(e);
 
-	while(b->off != b->bytes && gbfat(b->gbuf, b->off) != '\n'){
+	while (b->off != b->bytes && gbfat(b->gbuf, b->off) != '\n') {
 		w = width(gbfat(b->gbuf, b->off));
-		if(b->curcol + w <= p){
+		if (b->curcol + w <= p) {
 			forwoff(b);
 			b->curcol += w;
-		}else{
+		} else {
 			break;
 		}
 	}
@@ -215,22 +215,22 @@ up(Editor *e){
 
 // Moves the cursor one line down.
 void
-down(Editor *e){
+down(Editor *e) {
 	Buffer *b = e->current;
 	static size_t p;
 	size_t w;
 
-	if(b->lastfunc != down)
+	if (b->lastfunc != down)
 		p = e->txtbuf->curcol;
 
 	// Move the cursor to the beginning of the next line
-	do{
+	do {
 		right(e);
-	}while(b->curcol > p && b->off != b->bytes);
+	} while (b->curcol > p && b->off != b->bytes);
 
-	while(gbfat(b->gbuf, b->off) != '\n' && b->off != b->bytes){
+	while (gbfat(b->gbuf, b->off) != '\n' && b->off != b->bytes) {
 		w = width(gbfat(b->gbuf, b->off));
-		if(b->curcol + w > p){
+		if (b->curcol + w > p) {
 			break;
 		}
 		right(e);
@@ -239,42 +239,42 @@ down(Editor *e){
 
 // Moves the cursor to the beginning of the line.
 void
-bol(Editor *e){
+bol(Editor *e) {
 	Buffer *b = e->current;
 
-	if(b->off == 0)
+	if (b->off == 0)
 		return;
-	do{
+	do {
 		backoff(b);
-		if(gbfat(b->gbuf, b->off) == '\n'){
+		if (gbfat(b->gbuf, b->off) == '\n') {
 			b->off++;
 			break;
 		}
-	}while(b->off != 0);
+	} while (b->off != 0);
 	b->curcol = 0;
 }
 
 // Moves the cursor to the end of the line.
 void
-eol(Editor *e){
+eol(Editor *e) {
 	Buffer *b = e->current;
 
-	if(b->off == b->bytes){
+	if (b->off == b->bytes) {
 		msg(e, "End of buffer");
 		return;
 	}
-	while(b->off != b->bytes && gbfat(b->gbuf, b->off) != '\n'){
+	while (b->off != b->bytes && gbfat(b->gbuf, b->off) != '\n') {
 		right(e);
 	}
 }
 
 void
-pgdown(Editor *e){
+pgdown(Editor *e) {
 	Buffer *b = e->current;
 	size_t start = b->vis;
 
-	for(size_t i = 0; i < LINES - 1; i++){
-		if(!scrollup(b)){
+	for (size_t i = 0; i < LINES - 1; i++) {
+		if (!scrollup(b)) {
 			b->vis = start;
 			msg(e, "End of buffer");
 			return;

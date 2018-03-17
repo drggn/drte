@@ -10,7 +10,7 @@
 
 // Inserts s into the buffer.
 void
-ins(Editor *e, char *s){
+ins(Editor *e, char *s) {
 	Buffer *b = e->current;
 
 	gbfins(b->gbuf, s, b->off);
@@ -24,23 +24,23 @@ ins(Editor *e, char *s){
 
 // Inserts a '\t' at the current position
 void
-tab(Editor *e){
+tab(Editor *e) {
 	ins(e, "\t");
 }
 
 // Inserts a '\n' at the current position
 void
-newl(Editor *e){
+newl(Editor *e) {
 	ins(e, "\n");
 }
 
 // Deletes the char under the cursor
 void
-del(Editor *e){
+del(Editor *e) {
 	Buffer *b = e->current;
 	size_t bs = bytes(gbfat(b->gbuf, b->off));
 
-	if(b->off == b->bytes){
+	if (b->off == b->bytes) {
 		msg(e, "End of buffer");
 		return;
 	}
@@ -52,8 +52,8 @@ del(Editor *e){
 
 // Deletes the char before the cursor.
 void
-bksp(Editor *e){
-	if(e->current->off == 0){
+bksp(Editor *e) {
+	if (e->current->off == 0) {
 		msg(e, "Beginning of Buffer");
 		return;
 	}
