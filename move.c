@@ -217,7 +217,6 @@ up(Editor *e){
 void
 down(Editor *e){
 	Buffer *b = e->current;
-	size_t line = b->curline;
 	static size_t p;
 	size_t w;
 
