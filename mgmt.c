@@ -36,8 +36,8 @@ loop(Editor *e) {
 			e->current = e->prbuf;
 		} else {
 			char msg[COLS + 1];
-			snprintf(msg, COLS, "(%ld,%ld) vis: %ld %ld/%ld: %s%s",
-					 e->txtbuf->curline, e->txtbuf->curcol, e->txtbuf->vis,
+			snprintf(msg, COLS, "(%ld,%ld) startvis: %ld %ld/%ld: %s%s",
+					 e->txtbuf->curline, e->txtbuf->curcol, e->txtbuf->startvis,
 					 e->txtbuf->off, e->txtbuf->bytes,
 					 e->txtbuf->filename ? e->txtbuf->filename : "Unnamed",
 					 e->txtbuf->changed ? "*" : " ");
@@ -62,7 +62,7 @@ loop(Editor *e) {
 			wclear(e->txtbuf->win);
 
 			txt = gbftxt(e->txtbuf->gbuf);
-			size_t current = e->txtbuf->vis;
+			size_t current = e->txtbuf->startvis;
 			getmaxyx(e->txtbuf->win, maxlines, maxcols);
 
 			while (txt[current]) {
@@ -161,7 +161,7 @@ resize(Editor *e) {
 	redraw(e);
 
 	// prevent cursor from getting out of sync
-	size_t start = b->vis;
+	size_t start = b->startvis;
 	b->curline = 0;
 	b->curcol = 0;
 

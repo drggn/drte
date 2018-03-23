@@ -8,7 +8,7 @@ typedef struct Buffer{
 	size_t curcol;
 	size_t curline;
 	size_t off;
-	size_t vis;
+	size_t startvis;
 	size_t bytes;
 	char *filename; // NULL if no file
 	int redisp;

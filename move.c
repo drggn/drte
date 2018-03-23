@@ -37,41 +37,41 @@ backoff(Buffer *b) {
 }
 
 static int
-forwvis(Buffer *b) {
-	size_t start = b->vis;
+forwstartvis(Buffer *b) {
+	size_t start = b->startvis;
 	size_t col = 0;
 	size_t w;
 
-	while (gbfat(b->gbuf, b->vis) != '\n') {
-		w = width(gbfat(b->gbuf, b->vis));
+	while (gbfat(b->gbuf, b->startvis) != '\n') {
+		w = width(gbfat(b->gbuf, b->startvis));
 
-		if (b->vis == b->bytes) {
-			b->vis = start;
+		if (b->startvis == b->bytes) {
+			b->startvis = start;
 			return 0;
 		}
 		if (LineWrap(col + w)) {
 			break;
 		}
-		b->vis += bytes(gbfat(b->gbuf, b->vis));
+		b->startvis += bytes(gbfat(b->gbuf, b->startvis));
 		col += w;
 	}
-	b->vis += bytes(gbfat(b->gbuf, b->vis));;
+	b->startvis += bytes(gbfat(b->gbuf, b->startvis));;
 	return 1;
 }
 
 static int
-backwvis(Buffer *b) {
+backwstartvis(Buffer *b) {
 	int nls = 0; // how many \n did we see?
 
-	if (b->vis == 0)
+	if (b->startvis == 0)
 		return 0;
 	do {
-		b->vis--;
-		if (gbfat(b->gbuf, b->vis) == '\n')
+		b->startvis--;
+		if (gbfat(b->gbuf, b->startvis) == '\n')
 			nls++;
-	} while (b->vis > 0 && nls != 2);
+	} while (b->startvis > 0 && nls != 2);
 	if (nls == 2)
-		b->vis++;
+		b->startvis++;
 	return 1;
 }
 
@@ -88,7 +88,7 @@ backwcol(Buffer *b) {
 // Scrolls up by one line.
 static int
 scrollup(Buffer *b) {
-	if (forwvis(b)) {
+	if (forwstartvis(b)) {
 		wclear(b->win);
 		b->redisp = 1;
 		return 1;
@@ -99,7 +99,7 @@ scrollup(Buffer *b) {
 // Scrolls down by one line.
 static int
 scrolldown(Buffer *b) {
-	if (backwvis(b)) {
+	if (backwstartvis(b)) {
 		wclear(b->win);
 		b->redisp = 1;
 		return 1;
@@ -111,13 +111,13 @@ scrolldown(Buffer *b) {
 void
 center(Editor *e) {
 	Buffer *b = e->current;
-	size_t start = b->vis;
+	size_t start = b->startvis;
 	size_t goal = LINES / 2;
 
 	while (b->curline < goal) {
 		if (!scrolldown(b)) {
 			msg(e, "Can't scroll down here.");
-			b->vis = start;
+			b->startvis = start;
 			return;
 		}
 		b->curline++;
@@ -125,7 +125,7 @@ center(Editor *e) {
 	while (b->curline > goal) {
 		if (!scrollup(b)) {
 			msg(e, "Can't scroll up here.");
-			b->vis = start;
+			b->startvis = start;
 			return;
 		}
 		b->curline--;
@@ -271,16 +271,16 @@ eol(Editor *e) {
 void
 pgdown(Editor *e) {
 	Buffer *b = e->current;
-	size_t start = b->vis;
+	size_t start = b->startvis;
 
 	for (size_t i = 0; i < LINES - 1; i++) {
 		if (!scrollup(b)) {
-			b->vis = start;
+			b->startvis = start;
 			msg(e, "End of buffer");
 			return;
 		}
 	}
-	b->off = b->vis;
+	b->off = b->startvis;
 	b->curline = 0;
 	b->curcol = 0;
 }
