@@ -18,6 +18,7 @@ streql(char *s, char *t) {
 }
 
 
+// TODO: refactor
 void
 loop(Editor *e) {
 	char *txt = gbftxt(e->txtbuf->gbuf);
