@@ -9,6 +9,7 @@ typedef struct Buffer{
 	size_t curline;
 	size_t off;
 	size_t startvis;
+	size_t viscol;
 	size_t bytes;
 	char *filename; // NULL if no file
 	int redisp;
@@ -27,6 +28,9 @@ typedef struct Editor{
 	int prompt;
 	int stop;
 	int cancel;
+	size_t *linelength;
+	size_t maxlines;
+
 	Buffer *prbuf;
 	char *promptstr;
 	Buffer *txtbuf; // circular linked list

@@ -57,6 +57,7 @@ int
 main(int argc, char **argv) {
 	Editor *e;
 	Buffer *buf;
+	size_t lines = 512;
 
 	setlocale(LC_ALL, "");
 
@@ -69,6 +70,15 @@ main(int argc, char **argv) {
 	e = xmalloc(sizeof(*e));
 	memset(e, 0, sizeof(*e));
 	e->txtbuf = NULL;
+
+	if (LINES > 512) {
+		lines = LINES;
+		e->maxlines = lines;
+	} else {
+		lines = 512;
+		e->maxlines = 512;
+	}
+	e->linelength = xmalloc(sizeof(size_t) * lines);
 
 	for (size_t i = 1; i < argc; i++) {
 		buf = newbuffer(e, argv[i]);

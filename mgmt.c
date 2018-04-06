@@ -17,6 +17,16 @@ streql(char *s, char *t) {
 	return strcmp(s, t) == 0;
 }
 
+// Move the screen left/right.
+static void
+scrollhorizontal(Editor *e) {
+
+	if ((e->txtbuf->curcol < (COLS / 2))) {
+		e->txtbuf->viscol = 0;
+	} else {
+		e->txtbuf->viscol = e->txtbuf->curcol - (COLS / 2);
+	}
+}
 
 // TODO: refactor
 void
@@ -54,6 +64,10 @@ loop(Editor *e) {
 		}
 		wrefresh(e->prbuf->win);
 
+		if (e->txtbuf->curcol >= e->txtbuf->viscol + COLS ||
+			e->txtbuf->curcol < e->txtbuf->viscol) {
+			redraw(e);
+		}
 		// Draw the text buffer.
 		if (e->txtbuf->redisp) {
 			int maxlines;
@@ -61,7 +75,6 @@ loop(Editor *e) {
 			size_t line = 0;
 			size_t col = 0;
 			int lastwhitecol = -1;
-			int lastwhiteline = -1;
 
 			free(txt);
 			wclear(e->txtbuf->win);
@@ -69,6 +82,11 @@ loop(Editor *e) {
 			txt = gbftxt(e->txtbuf->gbuf);
 			size_t current = e->txtbuf->startvis;
 			getmaxyx(e->txtbuf->win, maxlines, maxcols);
+
+			if (e->txtbuf->curcol >= e->txtbuf->viscol + maxcols
+				|| e->txtbuf->curcol < e->txtbuf->viscol) {
+				scrollhorizontal(e);
+			}
 
 			while (txt[current]) {
 				size_t wid;
@@ -80,43 +98,35 @@ loop(Editor *e) {
 				}
 				wid = width(cp[0]);
 
-				mvwaddstr(e->txtbuf->win, line, col, cp);
+				if (e->txtbuf->viscol <= col &&
+					col < (e->txtbuf->viscol + maxcols)) {
+					mvwaddstr(e->txtbuf->win, line, col - e->txtbuf->viscol, cp);
+				}
 				col += wid;
-
 				if (iswhitespace(cp[0])) {
 					if (lastwhitecol == -1) {
 						lastwhitecol = col;
-						lastwhiteline = line;
 					}
 				} else {
 					lastwhitecol = -1;
-					lastwhiteline = -1;
 				}
 				if (cp[0] == '\n') {
+					e->linelength[line] = col - 1;
+
 					if (lastwhitecol != -1) {
 						// draw trailing whitespace
 						int c = lastwhitecol;
-						int l = lastwhiteline;
 						wattron(e->txtbuf->win, A_REVERSE);
-						while ((c != col) || (l != line)) {
-							mvwaddstr(e->txtbuf->win, l, c, ".");
-							if (LineWrap(c)) {
-								c = 0;
-								l++;
-							} else {
-								c++;
-							}
+						while (c != col) {
+							mvwaddstr(e->txtbuf->win, line, c, ".");
+							c++;
 						}
 						wattroff(e->txtbuf->win, A_REVERSE);
 					}
 					line++;
 					col = 0;
 					lastwhitecol = -1;
-					lastwhiteline = -1;
 					continue;
-				} else if (LineWrap(col)) {
-					line++;
-					col = 0;
 				}
 				if (line >= maxlines)
 					break;
@@ -124,7 +134,7 @@ loop(Editor *e) {
 			wrefresh(e->txtbuf->win);
 			e->txtbuf->redisp = 0;
 		}
-		wmove(e->current->win, e->current->curline, e->current->curcol);
+		wmove(e->current->win, e->current->curline, e->current->curcol - e->txtbuf->viscol);
 
 		int c = wgetch(e->current->win);
 		if ((c >= 0 && c <= 31) || (c >= KEY_MIN && c <= KEY_MAX)) {
@@ -165,29 +175,18 @@ resize(Editor *e) {
 	mvwin(e->prbuf->win, LINES - 1, 0);
 	redraw(e);
 
-	// prevent cursor from getting out of sync
-	size_t start = b->startvis;
-	b->curline = 0;
-	b->curcol = 0;
-
-	while (start != b->off) {
-		char c = gbfat(b->gbuf, start);
-
-		start += bytes(c);
-		b->curcol += width(c);
-
-		if (isnewline(c)) {
-			b->curcol = 0;
-			b->curline++;
-		}
-		if (LineWrap(b->curcol)) {
-			b->curcol = 0;
-			b->curline++;
+	if (LINES > e->maxlines) {
+		if (realloc(e->linelength, LINES)) {
+			e->maxlines = LINES;
+		} else {
+			fprintf(stderr, "Out of memory");
+			exit(-1);
 		}
 	}
 	if (b->curline >= LINES) {
 		center(e);
 	}
+	scrollhorizontal(e);
 }
 
 // Displays prompt in the status bar. Returns
