@@ -89,7 +89,6 @@ backwcol(Buffer *b) {
 static int
 scrollup(Buffer *b) {
 	if (forwstartvis(b)) {
-		wclear(b->win);
 		b->redisp = 1;
 		return 1;
 	}
@@ -100,7 +99,6 @@ scrollup(Buffer *b) {
 static int
 scrolldown(Buffer *b) {
 	if (backwstartvis(b)) {
-		wclear(b->win);
 		b->redisp = 1;
 		return 1;
 	}
