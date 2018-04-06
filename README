@@ -37,6 +37,8 @@ Keybindings:
     bol               Ctrl-A       Home
     eol               Ctrl-E       End
     center            Ctrl-L
+    page-up           Ctrl-U       PgUp
+    page-down         Ctrl-V       PgDn
 
   Deletion
     before cursor     Ctrl-H       Backspace
