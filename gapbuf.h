@@ -8,8 +8,6 @@ typedef struct{
 #define gaplen(gbuf) (gbuf->sec - gbuf->gst)
 #define fstlen(gbuf) (gbuf->gst - gbuf->buf)
 #define seclen(gbuf) (gbuf->bend - gbuf->sec)
-#define fstempty(gbuf) // TODO
-#define secemtpy(gbuf) // TODO
 
 Gapbuf *gbfnew(char *file, size_t size);
 void gbffree(Gapbuf *buf);
