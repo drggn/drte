@@ -289,6 +289,7 @@ newbuffer(Editor *e, char *file) {
 	buf->funcs[Ctrl('M')] = newl;
 	buf->funcs[Ctrl('N')] = down;
 	buf->funcs[Ctrl('P')] = up;
+	buf->funcs[Ctrl('U')] = pgup;
 	buf->funcs[Ctrl('V')] = pgdown;
 	buf->funcs[Ctrl('X')] = cx;
 	buf->funcs[Ctrl('Z')] = suspend;
@@ -302,6 +303,7 @@ newbuffer(Editor *e, char *file) {
 	buf->funcs[Ncur(KEY_HOME)] = bol;
 	buf->funcs[Ncur(KEY_END)] = eol;
 	buf->funcs[Ncur(KEY_NPAGE)] = pgdown;
+	buf->funcs[Ncur(KEY_PPAGE)] = pgup;
 	buf->funcs[Ncur(KEY_DC)] = del;
 	buf->funcs[Ncur(KEY_ENTER)] = newl;
 	buf->funcs[Ncur(KEY_BACKSPACE)] = bksp;

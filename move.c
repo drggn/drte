@@ -284,3 +284,20 @@ pgdown(Editor *e) {
 	b->curline = 0;
 	b->curcol = 0;
 }
+
+void
+pgup(Editor *e) {
+	Buffer *b = e->current;
+	size_t start = b->startvis;
+
+	for (size_t i = 0; i < LINES - 1; i++) {
+		if (!scrolldown(b)) {
+			b->startvis = start;
+			msg(e, "Beginning of buffer");
+			return;
+		}
+	}
+	b->off = b->startvis;
+	b->curline = 0;
+	b->curcol = 0;
+}
