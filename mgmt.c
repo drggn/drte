@@ -152,7 +152,7 @@ loop(Editor *e) {
 }
 
 // Redraw the display
-static void
+void
 redraw(Editor *e) {
 	e->current->redisp = 1;
 }

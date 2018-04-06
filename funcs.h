@@ -25,6 +25,7 @@ void pgdown(Editor *e);
 
 // In mgmt.c
 void loop(Editor *e);
+void redraw(Editor *e);
 void addbuffer(Editor *e, Buffer *buf, int before);
 Buffer *newbuffer(Editor *e, char *file);
 void open(Editor *e);
