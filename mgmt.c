@@ -12,7 +12,11 @@
 #include "utils.h"
 #include "funcs.h"
 
-#define streql(s, t) (strcmp((s), (t)) == 0)
+static int
+streql(char *s, char *t) {
+	return strcmp(s, t) == 0;
+}
+
 
 void
 loop(Editor *e) {
