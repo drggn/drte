@@ -1,5 +1,5 @@
-CC ?= gcc
-CFLAGS ?= -Os -Wall -std=c99 -pedantic -g
+CC = gcc
+CFLAGS = -Os -Wall -std=c99 -pedantic
 NCURSES = -lncursesw
 NCURSES-STATIC = -lncursesw -ltinfo
 BIN = drte
