@@ -405,14 +405,17 @@ save(Editor *e) {
 	if ((fd = fopen(b->filename, "w")) == NULL) {
 		snprintf(m, 1023, "Can't open %s", b->filename);
 		msg(e, m);
+		free(txt);
+		return;
 	}
-	if (fwrite(txt, b->bytes, 1, fd) != 1) {
+	if (fwrite(txt, 1, b->bytes, fd) != b->bytes) {
 		snprintf(m, 1023, "Error saving %s", b->filename);
 		msg(e, m);
 	} else {
 		msg(e, "wrote file");
 		e->txtbuf->changed = 0;
 	}
+	fclose(fd);
 	free(txt);
 }
 
