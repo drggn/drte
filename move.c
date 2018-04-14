@@ -269,13 +269,14 @@ pgdown(Editor *e) {
 void
 pgup(Editor *e) {
 	Buffer *b = e->current;
-	size_t start = b->startvis;
 
+	if (b->startvis == 0) {
+		msg(e, "Beginning of buffer");
+		return;
+	}
 	for (size_t i = 0; i < LINES - 1; i++) {
 		if (!scrolldown(b)) {
-			b->startvis = start;
-			msg(e, "Beginning of buffer");
-			return;
+			b->startvis = 0;
 		}
 	}
 	b->off = b->startvis;
