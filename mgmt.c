@@ -102,7 +102,6 @@ loop(Editor *e) {
 					col < (e->txtbuf->viscol + maxcols)) {
 					mvwaddstr(e->txtbuf->win, line, col - e->txtbuf->viscol, cp);
 				}
-				col += wid;
 				if (iswhitespace(cp[0])) {
 					if (lastwhitecol == -1) {
 						lastwhitecol = col;
@@ -110,12 +109,15 @@ loop(Editor *e) {
 				} else {
 					lastwhitecol = -1;
 				}
-				if (cp[0] == '\n') {
-					e->linelength[line] = col - 1;
+
+				if ((cp[0] == '\n') || (txt[current] == '\0')) {
+					e->linelength[line] = col;
 
 					if (lastwhitecol != -1) {
 						// draw trailing whitespace
 						int c = lastwhitecol;
+						if ((txt[current] == '\0') && (txt[current - 1] != '\n'))
+							col++;
 						wattron(e->txtbuf->win, A_REVERSE);
 						while (c != col) {
 							mvwaddstr(e->txtbuf->win, line, c, ".");
@@ -123,10 +125,14 @@ loop(Editor *e) {
 						}
 						wattroff(e->txtbuf->win, A_REVERSE);
 					}
-					line++;
-					col = 0;
-					lastwhitecol = -1;
-					continue;
+					if (cp[0] == '\n') {
+						line++;
+						col = 0;
+						lastwhitecol = -1;
+						continue;
+					}
+				} else  {
+					col += wid;
 				}
 				if (line >= maxlines)
 					break;
