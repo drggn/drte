@@ -117,7 +117,7 @@ loop(Editor *e) {
 						// draw trailing whitespace
 						int c = lastwhitecol;
 						if ((txt[current] == '\0') && (txt[current - 1] != '\n'))
-							col++;
+							col += wid;
 						wattron(e->txtbuf->win, A_REVERSE);
 						while (c != col) {
 							mvwaddstr(e->txtbuf->win, line, c, ".");
