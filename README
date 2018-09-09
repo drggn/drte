@@ -3,14 +3,11 @@ drte is a simple text editor. It's currently in early stages of development.
 
 Current limitations:
 
-  - UTF8 support is very basic
-  - resizing the terminal window leads to problems
+  - UTF8 support is very
   - currently only unix line endings (\n) are recognized
-  - it needs a better name
+  - lots of functionality is missing
 
 Compiling:
-
-  drte needs ncurses. A C compiler and make are also necessary.
 
   View/Edit Makefile. make. There is no install script, yet.
 
