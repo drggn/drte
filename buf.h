@@ -1,9 +1,23 @@
 struct Editor;
 typedef void(*Func)(struct Editor *);
 
-#define NCURSESKEYS ((KEY_MAX - KEY_MIN) - 2)
+typedef struct {
+	Func ctrl[32];
+	Func f[13]; // f[0] is always NULL
+	Func up;
+	Func down;
+	Func left;
+	Func right;
+	Func home;
+	Func end;
+	Func pgup;
+	Func pgdown;
+	Func insert;
+	Func delete;
+	// TODO: more
+}Functions;
 
-typedef struct Buffer{
+typedef struct Buffer {
 	size_t line;
 	size_t curcol;
 	size_t curline;
@@ -15,15 +29,15 @@ typedef struct Buffer{
 	int redisp;
 	int changed;
 	Gapbuf *gbuf;
-	WINDOW *win;
+	Window win;
 	Func lastfunc;
-	Func funcs[NCURSESKEYS];
+	Functions funcs;
 
 	struct Buffer *next;
 	struct Buffer *prev;
-}Buffer;
+} Buffer;
 
-typedef struct Editor{
+typedef struct Editor {
 	int msg;
 	int prompt;
 	int stop;
@@ -31,8 +45,14 @@ typedef struct Editor{
 	size_t *linelength;
 	size_t maxlines;
 
+	struct {
+		size_t lines;
+		size_t columns;
+	} display;
+
 	Buffer *prbuf;
 	char *promptstr;
+	Window statusbar;
 	Buffer *txtbuf; // circular linked list
 	Buffer *current;
-}Editor;
+} Editor;

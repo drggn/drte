@@ -1,8 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <ncurses.h>
-
+#include "display.h"
 #include "gapbuf.h"
 #include "buf.h"
 #include "utils.h"

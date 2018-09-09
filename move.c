@@ -1,7 +1,6 @@
 #include <stdlib.h>
 
-#include <ncurses.h>
-
+#include "display.h"
 #include "gapbuf.h"
 #include "buf.h"
 #include "utils.h"
@@ -107,7 +106,7 @@ void
 center(Editor *e) {
 	Buffer *b = e->current;
 	size_t start = b->startvis;
-	size_t goal = LINES / 2;
+	size_t goal = b->win.lines / 2;
 
 	while (b->curline < goal) {
 		if (!scrolldown(b)) {
@@ -164,7 +163,7 @@ right(Editor *e) {
 		return;
 	}
 	if (gbfat(b->gbuf, b->off) == '\n') {
-		if (b->curline >= LINES - 2) {
+		if (b->curline >= b->win.lines - 2) {
 			scrollup(b);
 		} else {
 			b->curline++;
@@ -254,7 +253,7 @@ pgdown(Editor *e) {
 	Buffer *b = e->current;
 	size_t start = b->startvis;
 
-	for (size_t i = 0; i < LINES - 1; i++) {
+	for (size_t i = 0; i < b->win.lines - 1; i++) {
 		if (!scrollup(b)) {
 			b->startvis = start;
 			msg(e, "End of buffer");
@@ -274,7 +273,7 @@ pgup(Editor *e) {
 		msg(e, "Beginning of buffer");
 		return;
 	}
-	for (size_t i = 0; i < LINES - 1; i++) {
+	for (size_t i = 0; i < b->win.lines - 1; i++) {
 		if (!scrolldown(b)) {
 			b->startvis = 0;
 		}

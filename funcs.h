@@ -1,6 +1,4 @@
 #define Ctrl(c) ((c) - 64)
-#define Ncur(c) (31 + ((c) - KEY_MIN))
-#define Code(c) ((c) >= 0 && (c) <= 31 ? (c) : Ncur((c)))
 
 // In edit.c
 void ins(Editor *e, char *s);
@@ -25,10 +23,11 @@ void pgup(Editor *e);
 // In mgmt.c
 void loop(Editor *e);
 void redraw(Editor *e);
+void resize(Editor *e);
 void addbuffer(Editor *e, Buffer *buf, int before);
 Buffer *newbuffer(Editor *e, char *file);
-void open(Editor *e);
-void close(Editor *e);
+void open_file(Editor *e);
+void close_buffer(Editor *e);
 void save(Editor *e);
 void saveas(Editor *e);
 void stoploop(Editor *e);
@@ -39,3 +38,4 @@ void prevbuffer(Editor *e);
 void nextbuffer(Editor *e);
 void msg(Editor *e, char *msg);
 void cx(Editor *e);
+void esc(Editor *e);
