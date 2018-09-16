@@ -580,6 +580,8 @@ csi(Editor *e) {
 		case 'B': f = funcs.down; need_tilde = 0; break;
 		case 'C': f = funcs.right; need_tilde = 0; break;
 		case 'D': f = funcs.left; need_tilde = 0; break;
+		case 'H': f = funcs.home; need_tilde = 0; break;
+		case 'F': f = funcs.end; need_tilde = 0; break;
 		default:
 			msg(e, "Sequence not bound");
 			return;
