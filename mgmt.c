@@ -594,8 +594,10 @@ csi(Editor *e) {
 			return;
 		}
 	}
-	f(e);
-	e->current->lastfunc = f;
+	if (f != NULL) {
+		f(e);
+		e->current->lastfunc = f;
+	}
 }
 
 void
