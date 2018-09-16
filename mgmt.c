@@ -555,8 +555,7 @@ csi(Editor *e) {
 			msg(e, "Sequence not bound");
 			return;
 		}
-	}
-	if (c == '2') {
+	} else if (c == '2') {
 		c = getchar();
 		if (c == '~') {
 			f = funcs.insert;
