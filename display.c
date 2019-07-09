@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <sys/ioctl.h>
 
@@ -13,7 +14,7 @@ display(Window win, size_t line, size_t column, char *text) {
 
 void
 clear_window(Window win) {
-	for (int i = 0; i < win.lines; i++) {
+	for (int i = 0; i < win.size.lines; i++) {
 		move_cursor(win, i, 0);
 		printf("\033[2K");
 	}
@@ -55,18 +56,18 @@ refresh(void) {
 
 void
 move_cursor(Window win, size_t line, size_t column) {
-	printf("\033[%ld;%ldH", win.ln + line, win.col + column);
+	printf("\033[%ld;%ldH", win.position.line + line, win.position.column + column);
 	fflush(stdout);
 }
 
 void
 move_window(Window *win, size_t line, size_t column) {
-	win->ln = line;
-	win->col = column;
+	win->position.line = line;
+	win->position.column = column;
 }
 
 void
 resize_window(Window *win, size_t lines, size_t columns) {
-	win->lines = lines;
-	win->columns = columns;
+	win->size.lines = lines;
+	win->size.columns = columns;
 }

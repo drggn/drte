@@ -1,5 +1,5 @@
-struct Editor;
-typedef void(*Func)(struct Editor *);
+typedef struct Editor Editor;
+typedef void (*Func)(Editor *);
 
 typedef struct {
 	Func ctrl[32];
@@ -14,22 +14,25 @@ typedef struct {
 	Func pgdown;
 	Func insert;
 	Func delete;
-	// TODO: more
-}Functions;
+} Functions;
 
 typedef struct Buffer {
-	size_t line;
-	size_t curcol;
-	size_t curline;
-	size_t off;
-	size_t startvis;
-	size_t viscol;
+	char *file_name; // NULL if no file
 	size_t bytes;
-	char *filename; // NULL if no file
-	int redisp;
-	int changed;
-	Gapbuf *gbuf;
-	Window win;
+	size_t offset;
+	size_t line;
+
+	struct {
+		size_t line;
+		size_t column;
+	} cursor;
+
+	size_t first_visible_char;
+	size_t first_visible_column;
+	bool redisplay;
+	bool changed;
+	GapBuffer *gap_buffer;
+	Window window;
 	Func lastfunc;
 	Functions funcs;
 
@@ -37,22 +40,22 @@ typedef struct Buffer {
 	struct Buffer *prev;
 } Buffer;
 
-typedef struct Editor {
-	int msg;
-	int prompt;
-	int stop;
-	int cancel;
-	size_t *linelength;
-	size_t maxlines;
+struct Editor {
+	bool message;
+	bool prompt;
+	bool stop;
+	bool cancel;
+	size_t *line_length;
+	size_t max_lines;
 
 	struct {
 		size_t lines;
 		size_t columns;
 	} display;
 
-	Buffer *prbuf;
-	char *promptstr;
-	Window statusbar;
-	Buffer *txtbuf; // circular linked list
+	Buffer *prompt_buffer;
+	char *prompt_string;
+	Window status_bar;
+	Buffer *text_buffer; // circular linked list
 	Buffer *current;
-} Editor;
+};

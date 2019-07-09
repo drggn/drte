@@ -1,15 +1,20 @@
 typedef struct {
-	size_t ln;
-	size_t col;
-	size_t lines;
-	size_t columns;
+	struct {
+		size_t line;
+		size_t column;
+	} position;
+
+	struct {
+		size_t lines;
+		size_t columns;
+	} size;
 } Window;
 
 typedef enum {
 	Black, Red, Green, Yellow, Blue, Magenta, Cyan, White
 } Color;
 
-extern struct Editor;
+struct Editor;
 
 void display(Window win, size_t line, size_t column, char *text);
 void clear_window(Window win);

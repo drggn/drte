@@ -1,7 +1,20 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
-void *xmalloc(size_t size) {
+#include "utils.h"
+
+// Returns true, if s ant t are equal.
+bool
+streql(char *s, char *t) {
+	return strcmp(s, t) == 0;
+}
+
+
+// Like malloc, but exits on OOM.
+void *
+xmalloc(size_t size) {
 	void *p;
 	if ((p = malloc(size)) != NULL) {
 		return p;
@@ -13,15 +26,15 @@ void *xmalloc(size_t size) {
 
 // TODO: Unicode
 int
-isnewline(unsigned char c) {
+is_newline(unsigned char c) {
 	return c == '\n';
 }
 
 // Returns true, if c is the first byte of a white space code point.
 // TODO: Unicode
 int
-iswhitespace(unsigned char c) {
-	return (c == '\t' || c == ' ' || isnewline(c));
+is_whitespace(unsigned char c) {
+	return (c == '\t' || c == ' ' || is_newline(c));
 }
 
 

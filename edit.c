@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "display.h"
 #include "gapbuf.h"
@@ -9,53 +10,51 @@
 
 // Inserts s into the buffer.
 void
-ins(Editor *e, char *s) {
+insert(Editor *e, char *s) {
 	Buffer *b = e->current;
 
-	gbfins(b->gbuf, s, b->off);
-	char *t = gbftxt(b->gbuf);
-	free(t);
+	gbf_insert(b->gap_buffer, s, b->offset);
 	b->bytes += strlen(s);
-	right(e);
-	b->changed = 1;
-	b->redisp = 1;
+	uf_right(e);
+	b->changed = true;
+	b->redisplay = true;
 }
 
 // Inserts a '\t' at the current position
 void
-tab(Editor *e) {
-	ins(e, "\t");
+uf_tab(Editor *e) {
+	insert(e, "\t");
 }
 
 // Inserts a '\n' at the current position
 void
-newl(Editor *e) {
-	ins(e, "\n");
+uf_newline(Editor *e) {
+	insert(e, "\n");
 }
 
 // Deletes the char under the cursor
 void
-del(Editor *e) {
+uf_delete(Editor *e) {
 	Buffer *b = e->current;
-	size_t bs = bytes(gbfat(b->gbuf, b->off));
+	size_t bs = bytes(gbf_at(b->gap_buffer, b->offset));
 
-	if (b->off == b->bytes) {
-		msg(e, "End of buffer");
+	if (b->offset == b->bytes) {
+		message(e, "End of buffer");
 		return;
 	}
-	gbfdel(b->gbuf, b->off, bs);
+	gbf_delete(b->gap_buffer, b->offset, bs);
 	b->bytes -= bs;
-	b->changed = 1;
-	b->redisp = 1;
+	b->changed = true;
+	b->redisplay = true;
 }
 
 // Deletes the char before the cursor.
 void
-bksp(Editor *e) {
-	if (e->current->off == 0) {
-		msg(e, "Beginning of Buffer");
+uf_backspace(Editor *e) {
+	if (e->current->offset == 0) {
+		message(e, "Beginning of Buffer");
 		return;
 	}
-	left(e);
-	del(e);
+	uf_left(e);
+	uf_delete(e);
 }

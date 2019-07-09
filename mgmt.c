@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,119 +13,120 @@
 #include "utils.h"
 #include "funcs.h"
 
-static int
-streql(char *s, char *t) {
-	return strcmp(s, t) == 0;
-}
+static void scroll_horizontal(Editor *e);
+void stop_loop(Editor *e);
+void cancel_loop(Editor *e);
 
 // Move the screen left/right.
 static void
-scrollhorizontal(Editor *e) {
+scroll_horizontal(Editor *e) {
+	Buffer *b = e->text_buffer;
 
-	if ((e->txtbuf->curcol < (e->txtbuf->win.columns / 2))) {
-		e->txtbuf->viscol = 0;
+	if ((b->cursor.column < (b->window.size.columns / 2))) {
+		e->text_buffer->first_visible_column = 0;
 	} else {
-		e->txtbuf->viscol = e->txtbuf->curcol - (e->txtbuf->win.columns / 2);
+		b->first_visible_column =
+			b->cursor.column - (b->window.size.columns / 2);
 	}
 }
 
-// TODO: refactor
 void
 loop(Editor *e) {
-	char *txt = gbftxt(e->txtbuf->gbuf);
-	char *prmtxt = gbftxt(e->prbuf->gbuf);
+	char *text = gbf_text(e->text_buffer->gap_buffer);
+	char *ptext = gbf_text(e->prompt_buffer->gap_buffer);
+	Buffer *tb = e->text_buffer;
+	Buffer *pb = e->prompt_buffer;
 
 	do {
-		if (e->msg) {
-			e->msg = 0;
+		if (e->message) {
+			e->message = false;
 		} else if (e->prompt) {
-			size_t coloff = strlen(e->promptstr);
+			size_t coloff = strlen(e->prompt_string);
 
-			if (e->prbuf->curcol == 0)
-				e->prbuf->curcol = coloff;
+			if (pb->cursor.column == 0)
+				pb->cursor.column = coloff;
 
-			clear_window(e->prbuf->win);
+			clear_window(pb->window);
 
-			free(prmtxt);
-			prmtxt = gbftxt(e->prbuf->gbuf);
+			free(ptext);
+			ptext = gbf_text(pb->gap_buffer);
 
 			set_foreground(Yellow);
-			display(e->prbuf->win, 0, 0, e->promptstr);
+			display(pb->window, 0, 0, e->prompt_string);
 			reset_colors();
-			display(e->prbuf->win, 0, coloff, prmtxt);
+			display(pb->window, 0, coloff, ptext);
 		} else {
-			clear_window(e->prbuf->win);
+			clear_window(pb->window);
 		}
 
-		// draw statusbar
-		char status[e->prbuf->win.columns + 1];
-		snprintf(status, e->prbuf->win.columns, "(%ld,%ld) startvis: %ld %ld/%ld: %s%s",
-				 e->txtbuf->curline, e->txtbuf->curcol, e->txtbuf->startvis,
-				 e->txtbuf->off, e->txtbuf->bytes,
-				 e->txtbuf->filename ? e->txtbuf->filename : "Unnamed",
-				 e->txtbuf->changed ? "*" : " ");
+		// draw status_bar
+		char status[pb->window.size.columns + 1];
+		snprintf(status, pb->window.size.columns,
+				 "(%ld,%ld) startvis: %ld %ld/%ld: %s%s",
+				 tb->line, tb->cursor.column + tb->first_visible_column,
+				 tb->first_visible_char,
+				 tb->offset, tb->bytes,
+				 tb->file_name ? tb->file_name : "Unnamed",
+				 tb->changed ? "*" : " ");
 
 		set_background(Blue);
-		display(e->statusbar, 0, 0, status);
-		for (size_t i = strlen(status); i <= e->prbuf->win.columns; i++)
-			display(e->statusbar, 0, 0 + i, " ");
+		set_foreground(Black);
+		display(e->status_bar, 0, 0, status);
+		for (size_t i = strlen(status); i <= pb->window.size.columns; i++)
+			display(e->status_bar, 0, 0 + i, " ");
 		reset_colors();
 
-		if (e->txtbuf->curcol >= e->txtbuf->viscol + e->txtbuf->win.columns
-			|| e->txtbuf->curcol < e->txtbuf->viscol) {
+		if (tb->cursor.column >= tb->first_visible_column + tb->window.size.columns
+			|| tb->cursor.column < tb->first_visible_column) {
+			scroll_horizontal(e);
 			redraw(e);
 		}
 		// Draw the text buffer.
-		if (e->txtbuf->redisp) {
+		if (tb->redisplay) {
 			size_t line = 0;
 			size_t col = 0;
-			int lastwhitecol = -1;
+			int last_white_char = -1;
 
-			free(txt);
-			clear_window(e->txtbuf->win);
+			free(text);
+			clear_window(tb->window);
 
-			txt = gbftxt(e->txtbuf->gbuf);
-			size_t current = e->txtbuf->startvis;
+			text = gbf_text(tb->gap_buffer);
+			size_t current = tb->first_visible_char;
 
-			if (e->txtbuf->curcol >= e->txtbuf->viscol + e->txtbuf->win.columns
-				|| e->txtbuf->curcol < e->txtbuf->viscol) {
-				scrollhorizontal(e);
-			}
-
-			while (txt[current]) {
+			while (text[current]) {
 				size_t wid;
-				char cp[5] = {0};
-				int size = bytes(txt[current]);
+				char cp[5] = {0}; // Code point
+				int size = bytes(text[current]);
 
 				for (int i = 0; i < size; i++, current++) {
-					cp[i] = txt[current];
+					cp[i] = text[current];
 				}
 				wid = width(cp[0]);
 
-				if (e->txtbuf->viscol <= col &&
-					col < (e->txtbuf->viscol + e->current->win.columns)) {
-					display(e->txtbuf->win, line, col - e->txtbuf->viscol, cp);
+				if (tb->first_visible_column <= col &&
+					col < (tb->first_visible_column + tb->window.size.columns)) {
+					display(tb->window, line, col - tb->first_visible_column, cp);
 				}
-				if (iswhitespace(cp[0])) {
-					if (lastwhitecol == -1) {
-						lastwhitecol = col;
+				if (is_whitespace(cp[0])) {
+					if (last_white_char == -1) {
+						last_white_char = col;
 					}
 				} else {
-					lastwhitecol = -1;
+					last_white_char = -1;
 				}
 
-				if ((cp[0] == '\n') || (txt[current] == '\0')) {
-					e->linelength[line] = col;
+				if ((cp[0] == '\n') || (text[current] == '\0')) {
+					e->line_length[line] = col;
 
-					if (lastwhitecol != -1) {
+					if (last_white_char != -1) {
 						// draw trailing whitespace
-						int c = lastwhitecol;
-						if ((txt[current] == '\0') && (txt[current - 1] != '\n'))
+						int c = last_white_char;
+						if ((text[current] == '\0') && (text[current - 1] != '\n'))
 							col += wid;
-						move_cursor(e->txtbuf->win, line, c);
+						move_cursor(tb->window, line, c);
 						set_background(Red);
 						while (c != col) {
-							display(e->txtbuf->win, line, c, " ");
+							display(tb->window, line, c, " ");
 							c++;
 						}
 						reset_colors();
@@ -132,17 +134,18 @@ loop(Editor *e) {
 					if (cp[0] == '\n') {
 						line++;
 						col = 0;
-						lastwhitecol = -1;
+						last_white_char = -1;
 					}
 				} else  {
 					col += wid;
 				}
-				if (line >= e->current->win.lines)
+				if (line >= tb->window.size.lines)
 					break;
 			}
-			e->txtbuf->redisp = 0;
+			e->text_buffer->redisplay = false;
 		}
-		move_cursor(e->current->win, e->current->curline, e->current->curcol - e->current->viscol);
+		move_cursor(e->current->window, e->current->cursor.line,
+					e->current->cursor.column - e->current->first_visible_column);
 		refresh();
 
 		int c = getchar();
@@ -165,11 +168,11 @@ loop(Editor *e) {
 				if ((c & 0x00000080) == 0x00000080) {
 					inp[i] = c;
 				} else {
-					msg(e, "Invalid input");
+					message(e, "Invalid input");
 					continue;
 				}
 			}
-			ins(e, inp);
+			insert(e, inp);
 		}
 	} while (!e->stop);
 }
@@ -177,7 +180,7 @@ loop(Editor *e) {
 // Redraw the display
 void
 redraw(Editor *e) {
-	e->current->redisp = 1;
+	e->current->redisplay = true;
 }
 
 // Called when the terminal is resized
@@ -191,26 +194,26 @@ resize(Editor *e) {
 	lines = e->display.lines;
 
 	do {
-		resize_window(&buf->win, lines - 2, e->display.columns);
+		resize_window(&buf->window, lines - 2, e->display.columns);
 		buf = buf->next;
 	} while (buf != b);
 
-	resize_window(&e->prbuf->win, 1, e->display.columns);
-	move_window(&e->prbuf->win, lines, 1);
-	move_window(&e->statusbar, lines - 1, 1);
+	resize_window(&e->prompt_buffer->window, 1, e->display.columns);
+	move_window(&e->prompt_buffer->window, lines, 1);
+	move_window(&e->status_bar, lines - 1, 1);
 
-	if (lines > e->maxlines) {
-		if (realloc(e->linelength, lines * 2)) {
-			e->maxlines = lines * 2;
+	if (lines > e->max_lines) {
+		if (realloc(e->line_length, lines * 2)) {
+			e->max_lines = lines * 2;
 		} else {
 			fprintf(stderr, "Out of memory");
 			exit(-1);
 		}
 	}
-	if (b->curline >= lines) {
-		center(e);
+	if (b->cursor.line >= lines) {
+		uf_center(e);
 	}
-	scrollhorizontal(e);
+	scroll_horizontal(e);
 
 	// TODO: screen is not redrawn automatically, because main loop blocks
 	redraw(e);
@@ -220,27 +223,27 @@ resize(Editor *e) {
 // the text entered by the user.
 static char *
 prompt(Editor *e, char *prompt) {
-	e->prompt = 1;
-	e->promptstr = prompt;
-	e->prbuf->curcol = 0;
-	e->prbuf->off = 0;
-	e->prbuf->bytes = 0;
-	e->current = e->prbuf;
-	gbfclear(e->prbuf->gbuf);
+	e->prompt = true;
+	e->prompt_string = prompt;
+	e->prompt_buffer->cursor.column = 0;
+	e->prompt_buffer->offset = 0;
+	e->prompt_buffer->bytes = 0;
+	e->current = e->prompt_buffer;
+	gbf_clear(e->prompt_buffer->gap_buffer);
 
 
 	loop(e);
 
-	e->prompt = 0;
-	e->stop = 0;
-	e->current = e->txtbuf;
-	clear_window(e->prbuf->win);
+	e->prompt = false;
+	e->stop = false;
+	e->current = e->text_buffer;
+	clear_window(e->prompt_buffer->window);
 
 	if (e->cancel) {
-		e->cancel = 0;
+		e->cancel = false;
 		return NULL;
 	} else {
-		return gbftxt(e->prbuf->gbuf);
+		return gbf_text(e->prompt_buffer->gap_buffer);
 	}
 }
 
@@ -250,19 +253,19 @@ void
 addbuffer(Editor *e, Buffer *buf, int before) {
 	if (buf == NULL)
 		return;
-	if (e->txtbuf == NULL) {
-		e->txtbuf = buf;
+	if (e->text_buffer == NULL) {
+		e->text_buffer = buf;
 		buf->next = buf;
 		buf->prev = buf;
 	} else if (before) {
-		buf->next = e->txtbuf;
-		buf->prev = e->txtbuf->prev;
+		buf->next = e->text_buffer;
+		buf->prev = e->text_buffer->prev;
 		buf->prev->next = buf;
-		e->txtbuf->prev = buf;
+		e->text_buffer->prev = buf;
 	} else {
-		buf->next = e->txtbuf->next;
-		e->txtbuf->next = buf;
-		buf->prev = e->txtbuf;
+		buf->next = e->text_buffer->next;
+		e->text_buffer->next = buf;
+		buf->prev = e->text_buffer;
 		buf->next->prev = buf;
 	}
 }
@@ -279,7 +282,7 @@ newbuffer(Editor *e, char *file) {
 		size = 0;
 	} else if (stat(file, &st) != 0) {
 		if (errno != ENOENT) {
-			msg(e, "Can't stat file.");
+			message(e, "Can't stat file.");
 			return NULL;
 		} else {
 			size = 0;
@@ -289,145 +292,145 @@ newbuffer(Editor *e, char *file) {
 	}
 	buf = xmalloc(sizeof(*buf));
 	memset(buf, 0, sizeof(*buf));
-	resize_window(&buf->win, e->display.lines - 2, e->display.columns);
-	move_window(&buf->win, 1, 1);
+	resize_window(&buf->window, e->display.lines - 2, e->display.columns);
+	move_window(&buf->window, 1, 1);
 
 	buf->bytes = size;
-	buf->gbuf = gbfnew(file, size);
+	buf->gap_buffer = gbf_new(file, size);
 	if (file != NULL) {
-		buf->filename = xmalloc(strlen(file) + 1);
-		strcpy(buf->filename, file);
+		buf->file_name = xmalloc(strlen(file) + 1);
+		strcpy(buf->file_name, file);
 	}
-	buf->redisp = 1;
+	buf->redisplay = true;
 
-	buf->funcs.ctrl[Ctrl('A')] = bol;
-	buf->funcs.ctrl[Ctrl('B')] = left;
-	buf->funcs.ctrl[Ctrl('D')] = del;
-	buf->funcs.ctrl[Ctrl('E')] = eol;
-	buf->funcs.ctrl[Ctrl('F')] = right;
-	buf->funcs.ctrl[Ctrl('H')] = bksp;
-	buf->funcs.ctrl[Ctrl('I')] = tab;
-	buf->funcs.ctrl[Ctrl('J')] = newl;
-	buf->funcs.ctrl[Ctrl('L')] = center;
-	buf->funcs.ctrl[Ctrl('M')] = newl;
-	buf->funcs.ctrl[Ctrl('N')] = down;
-	buf->funcs.ctrl[Ctrl('P')] = up;
-	buf->funcs.ctrl[Ctrl('U')] = pgup;
-	buf->funcs.ctrl[Ctrl('V')] = pgdown;
-	buf->funcs.ctrl[Ctrl('X')] = cx;
-	buf->funcs.ctrl[Ctrl('Z')] = suspend;
-	buf->funcs.ctrl[Ctrl('[')] = esc;
+	buf->funcs.ctrl[Ctrl('A')] = uf_bol;
+	buf->funcs.ctrl[Ctrl('B')] = uf_left;
+	buf->funcs.ctrl[Ctrl('D')] = uf_delete;
+	buf->funcs.ctrl[Ctrl('E')] = uf_eol;
+	buf->funcs.ctrl[Ctrl('F')] = uf_right;
+	buf->funcs.ctrl[Ctrl('H')] = uf_backspace;
+	buf->funcs.ctrl[Ctrl('I')] = uf_tab;
+	buf->funcs.ctrl[Ctrl('J')] = uf_newline;
+	buf->funcs.ctrl[Ctrl('L')] = uf_center;
+	buf->funcs.ctrl[Ctrl('M')] = uf_newline;
+	buf->funcs.ctrl[Ctrl('N')] = uf_down;
+	buf->funcs.ctrl[Ctrl('P')] = uf_up;
+	buf->funcs.ctrl[Ctrl('U')] = uf_page_up;
+	buf->funcs.ctrl[Ctrl('V')] = uf_page_down;
+	buf->funcs.ctrl[Ctrl('X')] = uf_cx;
+	buf->funcs.ctrl[Ctrl('Z')] = uf_suspend;
+	buf->funcs.ctrl[Ctrl('[')] = uf_escape;
 
-	buf->funcs.up = up;
-	buf->funcs.down = down;
-	buf->funcs.left = left;
-	buf->funcs.right = right;
-	buf->funcs.home = bol;
-	buf->funcs.end = eol;
-	buf->funcs.pgdown = pgdown;
-	buf->funcs.pgup = pgup;
-	buf->funcs.delete = del;
-	buf->funcs.f[2] = save;
-	buf->funcs.f[3] = open_file;
-	buf->funcs.f[4] = prevbuffer;
-	buf->funcs.f[5] = nextbuffer;
-	buf->funcs.f[8] = close_buffer;
-	buf->funcs.f[10] = quit;
+	buf->funcs.up = uf_up;
+	buf->funcs.down = uf_down;
+	buf->funcs.left = uf_left;
+	buf->funcs.right = uf_right;
+	buf->funcs.home = uf_bol;
+	buf->funcs.end = uf_eol;
+	buf->funcs.pgdown = uf_page_down;
+	buf->funcs.pgup = uf_page_up;
+	buf->funcs.delete = uf_delete;
+	buf->funcs.f[2] = uf_save;
+	buf->funcs.f[3] = uf_open_file;
+	buf->funcs.f[4] = uf_previous_buffer;
+	buf->funcs.f[5] = uf_next_buffer;
+	buf->funcs.f[8] = uf_close_buffer;
+	buf->funcs.f[10] = uf_quit;
 
 	return buf;
 }
 
 // Opens a file.
 void
-open_file(Editor *e) {
+uf_open_file(Editor *e) {
 	char *name = prompt(e, "Name: ");
-	Buffer *b = e->txtbuf;
+	Buffer *b = e->text_buffer;
 	if (name == NULL)
 		return;
 	// check for existng buffer
 	do {
-		if (b->filename != NULL && streql(b->filename, name)) {
-			e->txtbuf = b;
+		if (b->file_name != NULL && streql(b->file_name, name)) {
+			e->text_buffer = b;
 			free(name);
-			e->txtbuf->redisp = 1;
+			e->text_buffer->redisplay = true;
 			return;
 		}
 		b = b->next;
-	} while (b != e->txtbuf);
+	} while (b != e->text_buffer);
 
 	Buffer *buf = newbuffer(e, name);
 	addbuffer(e, buf, 0);
 	free(name);
-	nextbuffer(e);
+	uf_next_buffer(e);
 }
 
 // Closes the current buffer.
 void
-close_buffer(Editor *e) {
-	Buffer *b = e->txtbuf;
+uf_close_buffer(Editor *e) {
+	Buffer *b = e->text_buffer;
 	Buffer *new;
 	char msg[1024];
 	char *txt;
 
 	if (b->changed) {
 		snprintf(msg, 1023, "%s has changed. Save? ",
-				 e->txtbuf->filename);
+				 e->text_buffer->file_name);
 		txt = prompt(e, msg);
 		if (txt == NULL)
 			return;
 		if (streql(txt, "y") || streql(txt, "yes")) {
-			save(e);
+			uf_save(e);
 		}
 	}
-	if (b->filename != NULL)
-		free(b->filename);
-	gbffree(b->gbuf);
+	if (b->file_name != NULL)
+		free(b->file_name);
+	gbf_free(b->gap_buffer);
 
 	if (b->next == b) {
 		free(b);
-		e->txtbuf = NULL;
+		e->text_buffer = NULL;
 		new = newbuffer(e, NULL);
 		addbuffer(e, new, 0);
-		nextbuffer(e);
+		uf_next_buffer(e);
 	} else {
 		b->next->prev = b->prev;
 		b->prev->next = b->next;
-		nextbuffer(e);
+		uf_next_buffer(e);
 		free(b);
 	}
 }
 
 // Saves a file.
 void
-save(Editor *e) {
+uf_save(Editor *e) {
 	FILE *fd;
 	char *txt;
 	char m[1024];
-	Buffer *b = e->txtbuf;
+	Buffer *b = e->text_buffer;
 
-	if (b->changed == 0) {
-		msg(e, "File hasn't changed");
+	if (b->changed == false) {
+		message(e, "File hasn't changed");
 		return;
 	}
-	if (b->filename == NULL) {
-		saveas(e);
+	if (b->file_name == NULL) {
+		uf_save_as(e);
 		return;
 	}
 
-	txt = gbftxt(b->gbuf);
+	txt = gbf_text(b->gap_buffer);
 
-	if ((fd = fopen(b->filename, "w")) == NULL) {
-		snprintf(m, 1023, "Can't open %s", b->filename);
-		msg(e, m);
+	if ((fd = fopen(b->file_name, "w")) == NULL) {
+		snprintf(m, 1023, "Can't open %s", b->file_name);
+		message(e, m);
 		free(txt);
 		return;
 	}
 	if (fwrite(txt, 1, b->bytes, fd) != b->bytes) {
-		snprintf(m, 1023, "Error saving %s", b->filename);
-		msg(e, m);
+		snprintf(m, 1023, "Error saving %s", b->file_name);
+		message(e, m);
 	} else {
-		msg(e, "wrote file");
-		e->txtbuf->changed = 0;
+		message(e, "wrote file");
+		e->text_buffer->changed = false;
 	}
 	fclose(fd);
 	free(txt);
@@ -435,105 +438,104 @@ save(Editor *e) {
 
 // Saves a file under a different name.
 void
-saveas(Editor *e) {
-	char* name = prompt(e, "Filename: ");
+uf_save_as(Editor *e) {
+	char* name = prompt(e, "File_Name: ");
 	if (name == NULL)
 		return;
-	e->txtbuf->filename = name;
-	save(e);
+	e->text_buffer->file_name = name;
+	uf_save(e);
 }
 
 void
-stoploop(Editor *e) {
-	e->stop = 1;
+uf_stop_loop(Editor *e) {
+	e->stop = true;
 }
 
 void
-cancelloop(Editor *e) {
-	e->stop = 1;
-	e->cancel = 1;
+uf_cancel_loop(Editor *e) {
+	e->cancel = true;
 }
 
 // Quits drte.
 void
-quit(Editor *e) {
+uf_quit(Editor *e) {
 	char *txt;
 	char m[1024];
-	Buffer *first = e->txtbuf;
+	Buffer *first = e->text_buffer;
 
 	do {
-		if (e->txtbuf->filename != NULL && e->txtbuf->changed == 1) {
-			snprintf(m, 1023, "Save %s? ", e->txtbuf->filename);
+		if (e->text_buffer->file_name != NULL && e->text_buffer->changed == true) {
+			snprintf(m, 1023, "Save %s? ", e->text_buffer->file_name);
 			txt = prompt(e, m);
 			if (txt == NULL)
 				return;
 			if (streql(txt, "yes") || streql(txt, "y"))
-				save(e);
+				uf_save(e);
 			free(txt);
 		}
-		e->txtbuf = e->txtbuf->next;
-	} while (e->txtbuf != first);
+		e->text_buffer = e->text_buffer->next;
+	} while (e->text_buffer != first);
 
-	e->stop = 1;
+	e->stop = true;
 }
 
 void
-suspend(Editor *e) {
+uf_suspend(Editor *e) {
 	kill(0, SIGTSTP);
 }
 
 // Selects the previous buffer in the buffer list.
 void
-prevbuffer(Editor *e) {
-	e->txtbuf = e->txtbuf->prev;
-	e->txtbuf->redisp = 1;
-	clear_window(e->txtbuf->win);
+uf_previous_buffer(Editor *e) {
+	e->text_buffer = e->text_buffer->prev;
+	e->text_buffer->redisplay = true;
+	clear_window(e->text_buffer->window);
 }
 
 // Advances to the next buffer in the buffer list.
 void
-nextbuffer(Editor *e) {
-	e->txtbuf = e->txtbuf->next;
-	e->txtbuf->redisp = 1;
-	clear_window(e->txtbuf->win);
+uf_next_buffer(Editor *e) {
+	e->text_buffer = e->text_buffer->next;
+	e->text_buffer->redisplay = true;
+	clear_window(e->text_buffer->window);
 }
 
 void
-msg(Editor *e, char *msg) {
+message(Editor *e, char *msg) {
 	if (e->prompt)
 		return;
 
 	size_t len = strlen(msg);
 
 	set_foreground(Yellow);
-	display(e->prbuf->win, 0, 0, msg);
-	for (size_t i = len; i <= e->txtbuf->win.columns; i++){
-		display(e->prbuf->win, 0, i, " ");
+	display(e->prompt_buffer->window, 0, 0, msg);
+	for (size_t i = len; i <= e->text_buffer->window.size.columns; i++){
+		display(e->prompt_buffer->window, 0, i, " ");
 	}
 	reset_colors();
-	e->msg = 1;
+	e->message = true;
 }
 
 void
-cx(Editor *e) {
+uf_cx(Editor *e) {
 	int c = getchar();
 
 	switch(c) {
 	case Ctrl('S'):
-	case 's': save(e); break;
+	case 's': uf_save(e); break;
 	case Ctrl('W'):
-	case 'w': saveas(e); break;
+	case 'w': uf_save_as(e); break;
 	case Ctrl('K'):
-	case 'k': close_buffer(e); break;
+	case 'k': uf_close_buffer(e); break;
 	case Ctrl('C'):
-	case 'c': quit(e); break;
+	case 'c': uf_quit(e); break;
 	case Ctrl('N'):
-	case 'n': nextbuffer(e); break;
+	case 'n': uf_next_buffer(e); break;
 	case Ctrl('P'):
-	case 'p': prevbuffer(e); break;
+	case 'p': uf_previous_buffer(e); break;
 	case Ctrl('F'):
-	case 'f': open_file(e); break;
-	default: msg(e, "Sequence not bound");
+	case 'f': uf_open_file(e); break;
+	default: message(e, "Sequence not bound");
 	}
 }
 
@@ -552,7 +554,7 @@ csi(Editor *e) {
 		case '8': f = funcs.f[7]; break;
 		case '9': f = funcs.f[8]; break;
 		default:
-			msg(e, "Sequence not bound");
+			message(e, "Sequence not bound");
 			return;
 		}
 	} else if (c == '2') {
@@ -567,7 +569,7 @@ csi(Editor *e) {
 			case '3': f = funcs.f[11]; break;
 			case '4': f = funcs.f[12]; break;
 			default:
-				msg(e, "Sequence not bound");
+				message(e, "Sequence not bound");
 				return;
 			}
 		}
@@ -583,14 +585,14 @@ csi(Editor *e) {
 		case 'H': f = funcs.home; need_tilde = 0; break;
 		case 'F': f = funcs.end; need_tilde = 0; break;
 		default:
-			msg(e, "Sequence not bound");
+			message(e, "Sequence not bound");
 			return;
 		}
 	}
 	if (need_tilde) {
 		c = getchar();
 		if (c != '~') {
-			msg(e, "Sequence not bound");
+			message(e, "Sequence not bound");
 			return;
 		}
 	}
@@ -601,7 +603,7 @@ csi(Editor *e) {
 }
 
 void
-esc(Editor *e) {
+uf_escape(Editor *e) {
 	int c = getchar();
 	Func f = NULL;
 	Functions funcs = e->current->funcs;
@@ -621,7 +623,7 @@ esc(Editor *e) {
 		csi(e);
 		return;
 	default:
-		msg(e, "Sequence not bound");
+		message(e, "Sequence not bound");
 		return;
 	}
 	f(e);

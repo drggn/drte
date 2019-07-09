@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include "display.h"
 #include "gapbuf.h"
@@ -6,279 +7,238 @@
 #include "utils.h"
 #include "funcs.h"
 
+static bool first_byte(unsigned char c);
+static bool scroll_up(Buffer *b);
+static bool scroll_down(Buffer *b);
+
 // Returns true if c is the first byte of a character.
-static int
-fstbyte(unsigned char c) {
+static bool
+first_byte(unsigned char c) {
 	if (c < 128 || (c & 0xC0) == 0xC0)
-		return 1;
+		return true;
 	else
-		return 0;
-}
-
-// Sets b->off to the beginning of the next character.
-void
-forwoff(Buffer *b) {
-	int i;
-	unsigned char c = gbfat(b->gbuf, b->off);
-	i = bytes(c);
-	if ((b->off + i) <= b->bytes)
-		b->off += i;
-}
-
-// Sets b->off to the beginning of the previous character.
-void
-backoff(Buffer *b) {
-	if (b->off != 0) {
-		do {
-			b->off--;
-		} while (!fstbyte(gbfat(b->gbuf, b->off)));
-	}
-}
-
-static int
-forwstartvis(Buffer *b) {
-	size_t start = b->startvis;
-
-	while (gbfat(b->gbuf, b->startvis) != '\n') {
-		if (b->startvis == b->bytes) {
-			b->startvis = start;
-			return 0;
-		}
-		b->startvis += bytes(gbfat(b->gbuf, b->startvis));
-	}
-	b->startvis += bytes(gbfat(b->gbuf, b->startvis));
-	return 1;
-}
-
-static int
-backwstartvis(Buffer *b) {
-	int nls = 0;
-
-	if (b->startvis == 0)
-		return 0;
-
-	do {
-		char c = gbfat(b->gbuf, b->startvis);
-		b->startvis -= bytes(c);
-		if (gbfat(b->gbuf, b->startvis) == '\n') {
-			nls++;
-		}
-	} while (nls != 2 && b->startvis != 0);
-
-	if (b->startvis != 0)
-		b->startvis++;
-
-	return 1;
-}
-
-static void
-forwcol(Buffer *b) {
-       b->curcol += width(gbfat(b->gbuf, b->off));
-}
-
-static void
-backwcol(Buffer *b) {
-       b->curcol -= width(gbfat(b->gbuf, b->off));
+		return false;
 }
 
 // Scrolls up by one line.
-static int
-scrollup(Buffer *b) {
-	if (forwstartvis(b)) {
-		b->redisp = 1;
-		return 1;
+static bool
+scroll_up(Buffer *b) {
+	size_t start = b->first_visible_char;
+
+	while (gbf_at(b->gap_buffer, b->first_visible_char) != '\n') {
+		if (b->first_visible_char == b->bytes) {
+			b->first_visible_char = start;
+			return false;
+		}
+		b->first_visible_char +=
+			bytes(gbf_at(b->gap_buffer, b->first_visible_char));
 	}
-	return 0;
+	b->first_visible_char +=
+		bytes(gbf_at(b->gap_buffer, b->first_visible_char));
+	b->redisplay = true;
+	return true;
 }
 
 // Scrolls down by one line.
-static int
-scrolldown(Buffer *b) {
-	if (backwstartvis(b)) {
-		b->redisp = 1;
-		return 1;
-	}
-	return 0;
+static bool
+scroll_down(Buffer *b) {
+	int nls = 0;
+
+	if (b->first_visible_char == 0)
+		return false;
+
+	do {
+		char c = gbf_at(b->gap_buffer, b->first_visible_char);
+		b->first_visible_char -= bytes(c);
+		if (gbf_at(b->gap_buffer, b->first_visible_char) == '\n') {
+			nls++;
+		}
+	} while (nls != 2 && b->first_visible_char != 0);
+
+	if (b->first_visible_char != 0)
+		b->first_visible_char++;
+
+	b->redisplay = true;
+	return true;
 }
 
 // Move the line with the cursor to the center of the screen
 void
-center(Editor *e) {
+uf_center(Editor *e) {
 	Buffer *b = e->current;
-	size_t start = b->startvis;
-	size_t goal = b->win.lines / 2;
+	size_t start = b->first_visible_char;
+	size_t goal = b->window.size.lines / 2;
 
-	while (b->curline < goal) {
-		if (!scrolldown(b)) {
-			msg(e, "Can't scroll down here.");
-			b->startvis = start;
+	while (b->cursor.line < goal) {
+		if (!scroll_down(b)) {
+			message(e, "Can't scroll down here.");
+			b->first_visible_char = start;
 			return;
 		}
-		b->curline++;
+		b->cursor.line++;
 	}
-	while (b->curline > goal) {
-		if (!scrollup(b)) {
-			msg(e, "Can't scroll up here.");
-			b->startvis = start;
+	while (b->cursor.line > goal) {
+		if (!scroll_up(b)) {
+			message(e, "Can't scroll up here.");
+			b->first_visible_char = start;
 			return;
 		}
-		b->curline--;
+		b->cursor.line--;
 	}
 }
 
 // Moves the cursor one position to the left.
 void
-left(Editor *e) {
+uf_left(Editor *e) {
 	Buffer *b = e->current;
 
-	if (b->off == 0) {
-		msg(e, "Beginning of buffer");
+	if (b->offset == 0) {
+		message(e, "Beginning of buffer");
 		return;
 	}
-	backoff(b);
+	do {
+		b->offset--;
+	} while (!first_byte(gbf_at(b->gap_buffer, b->offset)));
 
-	if (b->curcol == 0) {
+	if (b->cursor.column == 0) {
 		b->line--;
 
-		if (b->curline == 0) {
-			scrolldown(b);
-			bol(e);
-			eol(e);
+		if (b->cursor.line == 0) {
+			scroll_down(b);
+			uf_bol(e);
+			uf_eol(e);
 		} else {
-			b->curline--;
-			b->curcol = e->linelength[b->curline];
+			b->cursor.line--;
+			b->cursor.column = e->line_length[b->cursor.line];
 		}
 	} else {
-		backwcol(b);
+		b->cursor.column -= width(gbf_at(b->gap_buffer, b->offset));
 	}
 }
 
 // Moves the cursor one position to the right.
 void
-right(Editor *e) {
+uf_right(Editor *e) {
 	Buffer *b = e->current;
 
-	if (b->off == b->bytes) {
-		msg(e, "End of buffer");
+	if (b->offset == b->bytes) {
+		message(e, "End of buffer");
 		return;
 	}
-	if (gbfat(b->gbuf, b->off) == '\n') {
-		if (b->curline >= b->win.lines - 2) {
-			scrollup(b);
+	if (gbf_at(b->gap_buffer, b->offset) == '\n') {
+		if (b->cursor.line >= b->window.size.lines - 1) {
+			scroll_up(b);
 		} else {
-			b->curline++;
+			b->cursor.line++;
 		}
 		b->line++;
-		b->curcol = 0;
+		b->cursor.column = 0;
 	} else {
-		forwcol(b);
+		b->cursor.column += width(gbf_at(b->gap_buffer, b->offset));
 	}
-	forwoff(b);
+	unsigned char c = gbf_at(b->gap_buffer, b->offset);
+	b->offset += bytes(c);
 }
 
 // Moves the cursor one line up.
 void
-up(Editor *e) {
+uf_up(Editor *e) {
 	Buffer *b = e->current;
 	static size_t p;
 
-	if (b->lastfunc != up)
-		p = e->txtbuf->curcol;
+	if (b->lastfunc != uf_up)
+		p = e->text_buffer->cursor.column;
 
-	while (b->curcol != 0) {
-		left(e);
+	while (b->cursor.column != 0) {
+		uf_left(e);
 	}
 	do {
-		left(e);
-	} while (b->off != 0 && b->curcol > p);
+		uf_left(e);
+	} while (b->offset != 0 && b->cursor.column > p);
 }
 
 // Moves the cursor one line down.
 void
-down(Editor *e) {
+uf_down(Editor *e) {
 	Buffer *b = e->current;
 	static size_t p;
 	size_t w;
 
-	if (b->lastfunc != down)
-		p = e->txtbuf->curcol;
+	if (b->lastfunc != uf_down)
+		p = e->text_buffer->cursor.column;
 
 	// Move the cursor to the beginning of the next line
 	do {
-		right(e);
-	} while (b->curcol > p && b->off != b->bytes);
+		uf_right(e);
+	} while (b->cursor.column > p && b->offset != b->bytes);
 
-	while (gbfat(b->gbuf, b->off) != '\n' && b->off != b->bytes) {
-		w = width(gbfat(b->gbuf, b->off));
-		if (b->curcol + w > p) {
+	while (gbf_at(b->gap_buffer, b->offset) != '\n' && b->offset != b->bytes) {
+		w = width(gbf_at(b->gap_buffer, b->offset));
+		if (b->cursor.column + w > p) {
 			break;
 		}
-		right(e);
+		uf_right(e);
 	}
 }
 
 // Moves the cursor to the beginning of the line.
 void
-bol(Editor *e) {
+uf_bol(Editor *e) {
 	Buffer *b = e->current;
 
-	if (b->off == 0)
+	if (b->offset == 0)
 		return;
 	do {
-		backoff(b);
-		if (gbfat(b->gbuf, b->off) == '\n') {
-			b->off++;
-			break;
-		}
-	} while (b->off != 0);
-	b->curcol = 0;
+		uf_left(e);
+	} while (b->offset != 0 && gbf_at(b->gap_buffer, b->offset) != '\n');
+	b->cursor.column = 0;
 }
 
 // Moves the cursor to the end of the line.
 void
-eol(Editor *e) {
+uf_eol(Editor *e) {
 	Buffer *b = e->current;
 
-	if (b->off == b->bytes) {
-		msg(e, "End of buffer");
+	if (b->offset == b->bytes) {
+		message(e, "End of buffer");
 		return;
 	}
-	while (b->off != b->bytes && gbfat(b->gbuf, b->off) != '\n') {
-		right(e);
+	while (b->offset != b->bytes && gbf_at(b->gap_buffer, b->offset) != '\n') {
+		uf_right(e);
 	}
 }
 
 void
-pgdown(Editor *e) {
+uf_page_up(Editor *e) {
 	Buffer *b = e->current;
-	size_t start = b->startvis;
+	size_t start = b->first_visible_char;
 
-	for (size_t i = 0; i < b->win.lines - 1; i++) {
-		if (!scrollup(b)) {
-			b->startvis = start;
-			msg(e, "End of buffer");
+	for (size_t i = 0; i < b->window.size.lines - 1; i++) {
+		if (!scroll_up(b)) {
+			b->first_visible_char = start;
+			message(e, "End of buffer");
 			return;
 		}
 	}
-	b->off = b->startvis;
-	b->curline = 0;
-	b->curcol = 0;
+	b->offset = b->first_visible_char;
+	b->cursor.line = 0;
+	b->cursor.column = 0;
 }
 
 void
-pgup(Editor *e) {
+uf_page_down(Editor *e) {
 	Buffer *b = e->current;
 
-	if (b->startvis == 0) {
-		msg(e, "Beginning of buffer");
+	if (b->first_visible_char == 0) {
+		message(e, "Beginning of buffer");
 		return;
 	}
-	for (size_t i = 0; i < b->win.lines - 1; i++) {
-		if (!scrolldown(b)) {
-			b->startvis = 0;
+	for (size_t i = 0; i < b->window.size.lines - 1; i++) {
+		if (!scroll_down(b)) {
+			b->first_visible_char = 0;
 		}
 	}
-	b->off = b->startvis;
-	b->curline = 0;
-	b->curcol = 0;
+	b->offset = b->first_visible_char;
+	b->cursor.line = 0;
+	b->cursor.column = 0;
 }

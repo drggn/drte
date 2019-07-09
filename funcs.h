@@ -1,24 +1,22 @@
 #define Ctrl(c) ((c) - 64)
 
 // In edit.c
-void ins(Editor *e, char *s);
-void tab(Editor *e);
-void newl(Editor *e);
-void del(Editor *e);
-void bksp(Editor *e);
+void insert(Editor *e, char *s);
+void uf_tab(Editor *e);
+void uf_newline(Editor *e);
+void uf_delete(Editor *e);
+void uf_backspace(Editor *e);
 
 // In move.c
-void forwoff(Buffer *b);
-void backoff(Buffer *b);
-void center(Editor *e);
-void left(Editor *e);
-void right(Editor *e);
-void up(Editor *e);
-void down(Editor *e);
-void bol(Editor *e);
-void eol(Editor *e);
-void pgdown(Editor *e);
-void pgup(Editor *e);
+void uf_center(Editor *e);
+void uf_left(Editor *e);
+void uf_right(Editor *e);
+void uf_up(Editor *e);
+void uf_down(Editor *e);
+void uf_bol(Editor *e);
+void uf_eol(Editor *e);
+void uf_page_down(Editor *e);
+void uf_page_up(Editor *e);
 
 // In mgmt.c
 void loop(Editor *e);
@@ -26,16 +24,16 @@ void redraw(Editor *e);
 void resize(Editor *e);
 void addbuffer(Editor *e, Buffer *buf, int before);
 Buffer *newbuffer(Editor *e, char *file);
-void open_file(Editor *e);
-void close_buffer(Editor *e);
-void save(Editor *e);
-void saveas(Editor *e);
-void stoploop(Editor *e);
-void cancelloop(Editor *e);
-void quit(Editor *e);
-void suspend(Editor *e);
-void prevbuffer(Editor *e);
-void nextbuffer(Editor *e);
-void msg(Editor *e, char *msg);
-void cx(Editor *e);
-void esc(Editor *e);
+void uf_open_file(Editor *e);
+void uf_close_buffer(Editor *e);
+void uf_save(Editor *e);
+void uf_save_as(Editor *e);
+void uf_stop_loop(Editor *e);
+void uf_cancel_loop(Editor *e);
+void uf_quit(Editor *e);
+void uf_suspend(Editor *e);
+void uf_previous_buffer(Editor *e);
+void uf_next_buffer(Editor *e);
+void message(Editor *e, char *msg);
+void uf_cx(Editor *e);
+void uf_escape(Editor *e);

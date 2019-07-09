@@ -1,19 +1,10 @@
-typedef struct{
-	char *buf;
-	char *gst;
-	char *sec;
-	char *bend;
-}Gapbuf;
+typedef struct GapBuffer GapBuffer;
 
-#define gaplen(gbuf) (gbuf->sec - gbuf->gst)
-#define fstlen(gbuf) (gbuf->gst - gbuf->buf)
-#define seclen(gbuf) (gbuf->bend - gbuf->sec)
-
-Gapbuf *gbfnew(char *file, size_t size);
-void gbffree(Gapbuf *buf);
-char *gbftxt(Gapbuf *buf);
-void gbfins(Gapbuf *buf, char *s, size_t off);
-void gbfdel(Gapbuf *buf, size_t off, size_t n);
-void gbfclear(Gapbuf *buf);
-char gbfat(Gapbuf *buf, size_t off);
+GapBuffer *gbf_new(char *file_name, size_t file_size);
+void gbf_free(GapBuffer *gbuf);
+char *gbf_text(GapBuffer *gbuf);
+void gbf_insert(GapBuffer *gbuf, char *s, size_t offset);
+void gbf_delete(GapBuffer *gbuf, size_t offset, size_t bytes);
+void gbf_clear(GapBuffer *gbuf);
+char gbf_at(GapBuffer *gbuf, size_t offset);
 
