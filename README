@@ -28,16 +28,16 @@ Keybindings:
     suspend           Ctrl-z
     redraw			  Ctrl-r
   Movement
-    forward           Ctrl-F       Right
-    backward          Ctrl-B       Left
-    up                Ctrl-P       Up
-    down              Ctrl-N       Down
-    bol               Ctrl-A       Home
-    eol               Ctrl-E       End
-    center            Ctrl-L
-    page-up           Ctrl-U       PgUp
-    page-down         Ctrl-V       PgDn
+    forward           Ctrl-f       Right
+    backward          Ctrl-b       Left
+    up                Ctrl-p       Up
+    down              Ctrl-n       Down
+    bol               Ctrl-a       Home
+    eol               Ctrl-e       End
+    center            Ctrl-l
+    page-up           Ctrl-u       PgUp
+    page-down         Ctrl-v       PgDn
 
   Deletion
-    before cursor     Ctrl-H       Backspace
-    under cursor      Ctrl-D       Delete
+    before cursor     Ctrl-h       Backspace
+    under cursor      Ctrl-d       Delete
