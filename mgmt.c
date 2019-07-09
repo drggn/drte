@@ -79,7 +79,7 @@ loop(Editor *e) {
 		if (tb->cursor.column >= tb->first_visible_column + tb->window.size.columns
 			|| tb->cursor.column < tb->first_visible_column) {
 			scroll_horizontal(e);
-			redraw(e);
+			uf_redraw(e);
 		}
 		// Draw the text buffer.
 		if (tb->redisplay) {
@@ -179,7 +179,7 @@ loop(Editor *e) {
 
 // Redraw the display
 void
-redraw(Editor *e) {
+uf_redraw(Editor *e) {
 	e->current->redisplay = true;
 }
 
@@ -216,7 +216,7 @@ resize(Editor *e) {
 	scroll_horizontal(e);
 
 	// TODO: screen is not redrawn automatically, because main loop blocks
-	redraw(e);
+	uf_redraw(e);
 }
 
 // Displays prompt in the status bar. Returns
@@ -315,6 +315,7 @@ newbuffer(Editor *e, char *file) {
 	buf->funcs.ctrl[Ctrl('M')] = uf_newline;
 	buf->funcs.ctrl[Ctrl('N')] = uf_down;
 	buf->funcs.ctrl[Ctrl('P')] = uf_up;
+	buf->funcs.ctrl[Ctrl('R')] = uf_redraw;
 	buf->funcs.ctrl[Ctrl('U')] = uf_page_up;
 	buf->funcs.ctrl[Ctrl('V')] = uf_page_down;
 	buf->funcs.ctrl[Ctrl('X')] = uf_cx;

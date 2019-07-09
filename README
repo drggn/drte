@@ -26,6 +26,7 @@ Keybindings:
     save              Ctrl-x s     F2
     save as           Ctrl-x w
     suspend           Ctrl-z
+    redraw			  Ctrl-r
   Movement
     forward           Ctrl-F       Right
     backward          Ctrl-B       Left

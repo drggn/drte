@@ -44,7 +44,7 @@ sigwinch_handler(int n) {
 static void
 sigcont_handler(int n) {
 	set_up_terminal();
-	redraw(editor);
+	uf_redraw(editor);
 }
 
 static void
@@ -81,6 +81,7 @@ make_prompt_funcs(Editor *e) {
 	buf->funcs.ctrl[Ctrl('I')] = uf_tab;
 	buf->funcs.ctrl[Ctrl('J')] = uf_stop_loop;
 	buf->funcs.ctrl[Ctrl('M')] = uf_stop_loop;
+	buf->funcs.ctrl[Ctrl('R')] = uf_redraw;
 	buf->funcs.ctrl[Ctrl('[')] = uf_escape;
 
 	buf->funcs.left = uf_left;
