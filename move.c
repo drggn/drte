@@ -209,7 +209,7 @@ uf_eol(Editor *e) {
 }
 
 void
-uf_page_up(Editor *e) {
+uf_page_down(Editor *e) {
 	Buffer *b = e->current;
 	size_t start = b->first_visible_char;
 
@@ -226,7 +226,7 @@ uf_page_up(Editor *e) {
 }
 
 void
-uf_page_down(Editor *e) {
+uf_page_up(Editor *e) {
 	Buffer *b = e->current;
 
 	if (b->first_visible_char == 0) {
