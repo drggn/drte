@@ -315,7 +315,7 @@ newbuffer(Editor *e, char *file) {
 	buf->funcs.ctrl[Ctrl('M')] = uf_newline;
 	buf->funcs.ctrl[Ctrl('N')] = uf_down;
 	buf->funcs.ctrl[Ctrl('P')] = uf_up;
-	buf->funcs.ctrl[Ctrl('R')] = uf_redraw;
+	buf->funcs.ctrl[Ctrl('Q')] = uf_redraw;
 	buf->funcs.ctrl[Ctrl('U')] = uf_page_up;
 	buf->funcs.ctrl[Ctrl('V')] = uf_page_down;
 	buf->funcs.ctrl[Ctrl('X')] = uf_cx;
