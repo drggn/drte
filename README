@@ -1,12 +1,6 @@
                              drte - dr's text editor
 drte is a simple text editor. It's currently in early stages of development.
 
-Current limitations:
-
-  - UTF8 support is very
-  - currently only unix line endings (\n) are recognized
-  - lots of functionality is missing
-
 Compiling:
 
   View/Edit Makefile. make. There is no install script, yet.
