@@ -34,7 +34,6 @@ void
 loop(Editor *e) {
 	char *text = gbf_text(e->text_buffer->gap_buffer);
 	char *ptext = gbf_text(e->prompt_buffer->gap_buffer);
-	Buffer *tb = e->text_buffer;
 	Buffer *pb = e->prompt_buffer;
 
 	do {
@@ -58,7 +57,7 @@ loop(Editor *e) {
 		} else {
 			clear_window(pb->window);
 		}
-
+		Buffer *tb = e->text_buffer;
 		// draw status_bar
 		char status[pb->window.size.columns + 1];
 		snprintf(status, pb->window.size.columns,
@@ -491,6 +490,7 @@ uf_previous_buffer(Editor *e) {
 	e->text_buffer = e->text_buffer->prev;
 	e->text_buffer->redisplay = true;
 	clear_window(e->text_buffer->window);
+	e->current = e->text_buffer;
 }
 
 // Advances to the next buffer in the buffer list.
@@ -499,6 +499,7 @@ uf_next_buffer(Editor *e) {
 	e->text_buffer = e->text_buffer->next;
 	e->text_buffer->redisplay = true;
 	clear_window(e->text_buffer->window);
+	e->current = e->text_buffer;
 }
 
 void
