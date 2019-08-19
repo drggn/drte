@@ -249,7 +249,7 @@ prompt(Editor *e, char *prompt) {
 // Adds buffer b to the editor. If before is true,
 // b is inserted before the current buffer. Else after.
 void
-addbuffer(Editor *e, Buffer *buf, int before) {
+add_buffer(Editor *e, Buffer *buf, int before) {
 	if (buf == NULL)
 		return;
 	if (e->text_buffer == NULL) {
@@ -359,7 +359,7 @@ uf_open_file(Editor *e) {
 	} while (b != e->text_buffer);
 
 	Buffer *buf = newbuffer(e, name);
-	addbuffer(e, buf, 0);
+	add_buffer(e, buf, 0);
 	free(name);
 	uf_next_buffer(e);
 }
@@ -390,7 +390,7 @@ uf_close_buffer(Editor *e) {
 		free(b);
 		e->text_buffer = NULL;
 		new = newbuffer(e, NULL);
-		addbuffer(e, new, 0);
+		add_buffer(e, new, 0);
 		uf_next_buffer(e);
 	} else {
 		b->next->prev = b->prev;
