@@ -14,8 +14,6 @@
 #include "funcs.h"
 
 static void scroll_horizontal(Editor *e);
-void stop_loop(Editor *e);
-void cancel_loop(Editor *e);
 
 // Move the screen left/right.
 static void
