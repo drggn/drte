@@ -66,7 +66,7 @@ loop(Editor *e) {
 				 tb->file_name ? tb->file_name : "Unnamed",
 				 tb->changed ? "*" : " ");
 
-		set_background(Blue);
+		set_background(White);
 		set_foreground(Black);
 		display(e->status_bar, 0, 0, status);
 		for (size_t i = strlen(status); i <= pb->window.size.columns; i++)
