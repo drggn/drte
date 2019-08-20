@@ -125,11 +125,11 @@ main(int argc, char **argv) {
 
 	for (size_t i = 1; i < argc; i++) {
 		buf = newbuffer(editor, argv[i]);
-		addbuffer(editor, buf, 1);
+		add_buffer(editor, buf, 1);
 	}
 	if (editor->text_buffer == NULL) {
 		buf = newbuffer(editor, NULL);
-		addbuffer(editor, buf, 0);
+		add_buffer(editor, buf, 0);
 	}
 	if (editor->text_buffer == NULL) {
 		fprintf(stderr, "Init failed\n");

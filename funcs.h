@@ -22,7 +22,7 @@ void uf_page_up(Editor *e);
 void loop(Editor *e);
 void uf_redraw(Editor *e);
 void resize(Editor *e);
-void addbuffer(Editor *e, Buffer *buf, int before);
+void add_buffer(Editor *e, Buffer *buf, int before);
 Buffer *newbuffer(Editor *e, char *file);
 void uf_open_file(Editor *e);
 void uf_close_buffer(Editor *e);
